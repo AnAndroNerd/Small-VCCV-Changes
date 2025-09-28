@@ -1177,6 +1177,9 @@ namespace OpenUtau.App.Views {
             var project = Core.DocManager.Inst.Project;
             int snapUnit = project.resolution * 4 / notesVm.SnapDiv;
             int deltaTicks = notesVm.IsSnapOn ? snapUnit : 15;
+            if (Preferences.Default.NoNoteSizeCap) {
+                deltaTicks = snapUnit = 1;
+            }
 
             bool isNone = args.KeyModifiers == KeyModifiers.None;
             bool isAlt = args.KeyModifiers == KeyModifiers.Alt;
