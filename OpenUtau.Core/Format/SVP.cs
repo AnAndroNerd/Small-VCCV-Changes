@@ -43,7 +43,7 @@ namespace OpenUtau.Core.Format {
 
             project.tempos = svpProject.time?.tempo?.Select(t =>
                 new UTempo(
-                    (int)Math.Round(t.position / 1_042_230.0), // convert to ms
+                    (int)Math.Round(t.position / 1470000.0), // convert to OU.Ticks
                     t.bpm)
             ).ToList() ?? new List<UTempo>();
 
@@ -68,16 +68,17 @@ namespace OpenUtau.Core.Format {
                 };
 
                 foreach (var svpNote in svpTrack.mainGroup.notes) {
-                    if (svpNote.musicalType != "singing") {
+                    // skips over rap notes
+                    if (svpNote.musicalType == "rapping") {
                         continue;
                     }
-                    // nanoseconds to milliseconds
-                    double onsetMs = svpNote.onset / 1_468_750.0;
-                    double durationMs = svpNote.duration / 1_468_750.0;
+                    // SV.Quarter to OU.Ticks
+                    double onsetMs = svpNote.onset / 1470000.0;
+                    double durationMs = svpNote.duration / 1470000.0;
                     Log.Error($"Note onset: {svpNote.onset} ticks ({onsetMs:F3} ms)");
 
-                    int tickOn = timeAxis.MsPosToTickPos(Math.Round(onsetMs));
-                    int tickOff = timeAxis.MsPosToTickPos(Math.Round(onsetMs + durationMs));
+                    int tickOn = (int)(Math.Round(onsetMs));
+                    int tickOff = (int)(Math.Round(onsetMs + durationMs));
                     int duration = Math.Max(tickOff - tickOn, 1);
                     Log.Error($"Note tick: {tickOn}");
 
@@ -86,7 +87,7 @@ namespace OpenUtau.Core.Format {
                         tickOn,
                         duration);
                     
-                    note.lyric = string.IsNullOrEmpty(svpNote.lyrics) ? "a" : svpNote.lyrics;
+                    note.lyric = string.IsNullOrEmpty(svpNote.lyrics) ? $"{Util.NotePresets.Default.DefaultLyric}" : svpNote.lyrics;
                     if (note.lyric == "-") {
                         note.lyric = "+~";
                     }
