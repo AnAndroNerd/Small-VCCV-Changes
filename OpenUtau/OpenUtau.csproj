@@ -25,7 +25,7 @@
     <CFBundlePackageType>APPL</CFBundlePackageType>
     <CFBundleSignature>????</CFBundleSignature>
     <CFBundleExecutable>OpenUtau</CFBundleExecutable>
-    <CFBundleIconFile>OpenUtau.icns</CFBundleIconFile>
+    <CFBundleIconFile>OpenUtau.icon</CFBundleIconFile>
     <NSPrincipalClass>NSApplication</NSPrincipalClass>
     <NSHighResolutionCapable>true</NSHighResolutionCapable>
     <CFBundleDocumentTypes>
