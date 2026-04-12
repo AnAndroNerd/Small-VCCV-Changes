@@ -22,11 +22,11 @@ namespace OpenUtau.App.Controls {
             IsVisible = false;
         }
 
-        private void Box_GotFocus(object? sender, RoutedEventArgs e) {
+        private void Box_GotFocus(object? sender, FocusChangedEventArgs e) {
             box.SelectAll();
         }
 
-        private void Box_LostFocus(object? sender, RoutedEventArgs e) {
+        private void Box_LostFocus(object? sender, FocusChangedEventArgs e) {
             box.CaretIndex = 0;
         }
 
