@@ -184,7 +184,7 @@ namespace OpenUtau.App.Controls {
                 args.Handled = true;
             }
         }
-        void VolumeOrPanTextBoxLostFocus(object sender, RoutedEventArgs args) {
+        void VolumeOrPanTextBoxLostFocus(object sender, FocusChangedEventArgs args) {
             FinishVolumeOrPanInput(sender, true);
             args.Handled = true;
         }

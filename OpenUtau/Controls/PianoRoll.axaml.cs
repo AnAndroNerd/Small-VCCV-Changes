@@ -904,6 +904,7 @@ namespace OpenUtau.App.Controls {
             editState.End(point.Pointer, point.Position);
             editState = null;
             Cursor = null;
+            args.Pointer.Capture(null);
         }
 
         public void NotesCanvasDoubleTapped(object sender, TappedEventArgs args) {
@@ -1046,6 +1047,7 @@ namespace OpenUtau.App.Controls {
             editState.End(point.Pointer, point.Position);
             editState = null;
             Cursor = null;
+            args.Pointer.Capture(null);
         }
 
         public void PhonemeCanvasDoubleTapped(object sender, TappedEventArgs args) {
@@ -1166,6 +1168,7 @@ namespace OpenUtau.App.Controls {
             editState.End(point.Pointer, point.Position);
             editState = null;
             Cursor = null;
+            args.Pointer.Capture(null);
         }
 
         public void BackgroundPointerMoved(object sender, PointerEventArgs args) {
