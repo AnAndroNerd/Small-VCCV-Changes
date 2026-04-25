@@ -20,6 +20,12 @@ namespace OpenUtau.App.Controls {
             box = PART_Box;
             listBox = PART_Suggestions;
             IsVisible = false;
+            viewModel.Suggestions.CollectionChanged += (_, _) => {
+                Dispatcher.UIThread.Post(() => {
+                    listBox.SelectedIndex = -1;
+                    viewModel.SelectedSuggestion = null;
+                }, DispatcherPriority.Input);
+            };
         }
 
         private void Box_GotFocus(object? sender, FocusChangedEventArgs e) {
