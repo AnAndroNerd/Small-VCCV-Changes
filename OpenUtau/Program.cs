@@ -76,12 +76,19 @@ namespace OpenUtau.App {
                     new FontFallback { FontFamily = new FontFamily("Arial") },
                 ];
             }
+
             return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .LogToTrace()
                 .UseReactiveUI(_ => { })
                 .With(fontOptions)
-                .With(new X11PlatformOptions {EnableIme = true});
+                .With(new X11PlatformOptions {
+                    RenderingMode = new[] { X11RenderingMode.Glx },
+                    EnableIme = true
+                })
+                .With(new Win32PlatformOptions {
+                    RenderingMode = new[] { Win32RenderingMode.Wgl }
+                });
         }
 
         public static void Run(string[] args)
