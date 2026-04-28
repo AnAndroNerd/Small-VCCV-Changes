@@ -32,17 +32,15 @@ namespace OpenUtau.Api {
         private readonly BlockingCollection<PhonemizerRequest> requests = new BlockingCollection<PhonemizerRequest>();
         private readonly object busyLock = new object();
         private Thread thread;
-        private readonly ManualResetEventSlim finishedEvent = new ManualResetEventSlim(true);
 
         public PhonemizerRunner(TaskScheduler mainScheduler) {
             this.mainScheduler = mainScheduler;
             thread = new Thread(PhonemizerLoop) {
                 IsBackground = true,
-                Priority = ThreadPriority.BelowNormal
+                Priority = ThreadPriority.AboveNormal,
             };
             thread.Start();
         }
-
 
         public void Push(PhonemizerRequest request) {
             requests.Add(request);
@@ -52,16 +50,7 @@ namespace OpenUtau.Api {
             var parts = new HashSet<UVoicePart>();
             var toRun = new List<PhonemizerRequest>();
             while (!shutdown.IsCancellationRequested) {
-                PhonemizerRequest first;
-                try {
-                    first = requests.Take(shutdown.Token);
-                } catch (OperationCanceledException) {
-                    break;
-                }
-
                 lock (busyLock) {
-                    finishedEvent.Reset();
-                    toRun.Add(first);
                     while (requests.TryTake(out var request)) {
                         toRun.Add(request);
                     }
@@ -75,7 +64,9 @@ namespace OpenUtau.Api {
                     }
                     parts.Clear();
                     toRun.Clear();
-                    finishedEvent.Set();
+                    try {
+                        toRun.Add(requests.Take(shutdown.Token));
+                    } catch (OperationCanceledException) { }
                 }
             }
         }
@@ -187,7 +178,13 @@ namespace OpenUtau.Api {
         /// Should only be used in command line mode.
         /// </summary>
         public void WaitFinish() {
-            finishedEvent.Wait(); 
+            while (true) {
+                lock (busyLock) {
+                    if (requests.Count == 0) {
+                        return;
+                    }
+                }
+            }
         }
 
         public void Dispose() {
@@ -202,7 +199,6 @@ namespace OpenUtau.Api {
                 thread = null;
             }
             requests.Dispose();
-            finishedEvent.Dispose();
         }
     }
 }
