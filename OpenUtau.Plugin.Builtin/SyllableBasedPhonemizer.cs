@@ -167,7 +167,7 @@ namespace OpenUtau.Plugin.Builtin {
 
             var phonemes = new List<Phoneme>();
             int globalPhonemeIndex = 0; // Track the exact index for OpenUtau's UI
-            
+
             foreach (var syllable in syllables) {
                 var modifiedSyllable = ApplyBoundaryReplacements(syllable);
                 
@@ -185,11 +185,15 @@ namespace OpenUtau.Plugin.Builtin {
                     var endingPhonemes = ProcessEnding(ending);
                     
                     if (endingPhonemes != null) {
-                        phonemes.AddRange(MakePhonemes(endingPhonemes, modifiedSyllable.duration, modifiedSyllable.position, false));
+                        phonemes.AddRange(MakePhonemes(endingPhonemes, modifiedSyllable.duration, modifiedSyllable.position, false, modifiedSyllable.tone, mainNote.phonemeAttributes, globalPhonemeIndex));
+                        globalPhonemeIndex += endingPhonemes.Count;
                     }
                     continue; 
                 }
-                phonemes.AddRange(MakePhonemes(ProcessSyllable(modifiedSyllable), modifiedSyllable.duration, modifiedSyllable.position, false));
+                
+                var syllablePhonemes = ProcessSyllable(modifiedSyllable);
+                phonemes.AddRange(MakePhonemes(syllablePhonemes, modifiedSyllable.duration, modifiedSyllable.position, false, modifiedSyllable.tone, mainNote.phonemeAttributes, globalPhonemeIndex));
+                globalPhonemeIndex += syllablePhonemes.Count;
             }
 
             if (!nextNeighbour.HasValue) {
@@ -205,7 +209,8 @@ namespace OpenUtau.Plugin.Builtin {
                     var endingPhonemes = ProcessEnding(modifiedEnding);
 
                     if (endingPhonemes != null) {
-                        phonemes.AddRange(MakePhonemes(endingPhonemes, modifiedEnding.duration, modifiedEnding.position, true));
+                        phonemes.AddRange(MakePhonemes(endingPhonemes, modifiedEnding.duration, modifiedEnding.position, true, ending.tone, mainNote.phonemeAttributes, globalPhonemeIndex));
+                        globalPhonemeIndex += endingPhonemes.Count; 
                     }
                 }
             }
@@ -1334,7 +1339,10 @@ namespace OpenUtau.Plugin.Builtin {
                 var validatedAlias = phonemeSymbols[phonemeI];
 
                 if (validatedAlias != null) {
-                    phonemes[phonemeI].phoneme = validatedAlias;
+                    phonemes[phonemeI] = new Phoneme {
+                        phoneme = validatedAlias,
+                        index = globalIndex 
+                    };
                     
                     if (i == 0) {
                         if (isEnding) {
@@ -1347,8 +1355,7 @@ namespace OpenUtau.Plugin.Builtin {
                                 int maxAllowed = containerLength / 3;
                                 phonemes[phonemeI].position = System.Math.Min(targetTicks, maxAllowed);
                             } else {
-                                // Natural mode: Use the full Preutterance (Right Blank space)
-                                // Useful when the endings has a sound like those VC-'s in VCCV
+                                // Natural mode: Use the full Preutterance
                                 phonemes[phonemeI].position = MsToTick(baseLengthMs);
                             }
                         } else {
@@ -1359,12 +1366,16 @@ namespace OpenUtau.Plugin.Builtin {
                             phonemes[phonemeI].position = -sum;
                         }
                     } else {
-                        // VC transitions keep their full length.
+                        // VC transitions keep their full stretched length
                         phonemes[phonemeI].position = trueLengths[i];
                     }
                 } else {
-                    phonemes[phonemeI].phoneme = null;
-                    phonemes[phonemeI].position = 0;
+                    // Initialize empty slots properly to avoid null crashes
+                    phonemes[phonemeI] = new Phoneme {
+                        phoneme = null,
+                        position = 0,
+                        index = globalIndex
+                    };
                 }
             }
             
