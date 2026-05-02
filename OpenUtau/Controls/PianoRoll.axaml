@@ -17,7 +17,7 @@
         <RowDefinition Height="24"/>
         <RowDefinition Height="24"/>
         <RowDefinition Height="24"/>
-        <RowDefinition Height="*"/>
+        <RowDefinition Height="*" MinHeight="60"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="150" 
                        MinHeight="{Binding NotesViewModel.ExpHeightMin}"
