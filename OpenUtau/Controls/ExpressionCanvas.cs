@@ -71,6 +71,11 @@ namespace OpenUtau.App.Controls {
         private CurveSelection curveSelection = new CurveSelection();
         private Geometry pointGeometry;
         private Geometry circleGeometry;
+        private readonly Pen dashedPen = new Pen(
+            ThemeManager.NeutralAccentBrush, 1,
+            new DashStyle(new double[] { 4, 4 }, 0));
+        private readonly PathGeometry reusableGeometry = new PathGeometry();
+        private readonly PathFigure reusableFigure = new PathFigure { IsClosed = false };
 
         public ExpressionCanvas() {
             ClipToBounds = true;
@@ -90,6 +95,7 @@ namespace OpenUtau.App.Controls {
                     curveSelection = e.selection;
                     InvalidateVisual();
                 });
+            reusableGeometry.Figures!.Add(reusableFigure);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change) {
@@ -127,7 +133,7 @@ namespace OpenUtau.App.Controls {
                 var lPen2 = ThemeManager.AccentPen1Thickness2;
                 var lPenSelected = ThemeManager.AccentPen2;
                 var lPen2Selected = ThemeManager.AccentPen2Thickness2;
-                var lPen3 = new Pen(ThemeManager.NeutralAccentBrush, 1, new DashStyle(new double[] { 4, 4 }, 0));
+                var lPen3 = dashedPen;
                 var brush = ThemeManager.AccentBrush1;
                 double x3 = Math.Round(viewModel.TickToneToPoint(leftTick, 0).X);
                 double x4 = Math.Round(viewModel.TickToneToPoint(rightTick, 0).X);
@@ -211,10 +217,8 @@ namespace OpenUtau.App.Controls {
                             offset = end;
                             continue;
                         }
-                        var geometry = new PathGeometry();
-                        var figure = new PathFigure {
-                            IsClosed = false
-                        };
+                        var geometry = reusableGeometry;
+                        var figure = reusableFigure;
                         for (int i = start; i < end; ++i) {
                             float tick = curve.realXs[i];
                             float value = curve.realYs[i];
@@ -235,6 +239,7 @@ namespace OpenUtau.App.Controls {
                             }
                         }
                         geometry.Figures!.Add(figure);
+                        reusableFigure.Segments!.Clear();
                         context.DrawGeometry(ThemeManager.RealCurveFillBrush, ThemeManager.RealCurvePen, geometry);
                         offset = end;
                     }

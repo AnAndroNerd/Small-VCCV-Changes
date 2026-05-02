@@ -83,11 +83,7 @@ namespace OpenUtau.App {
                 .UseReactiveUI(_ => { })
                 .With(fontOptions)
                 .With(new X11PlatformOptions {
-                    RenderingMode = new[] { X11RenderingMode.Glx },
                     EnableIme = true
-                })
-                .With(new Win32PlatformOptions {
-                    RenderingMode = new[] { Win32RenderingMode.Wgl }
                 });
         }
 
