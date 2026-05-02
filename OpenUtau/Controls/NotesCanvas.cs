@@ -136,16 +136,7 @@ namespace OpenUtau.App.Controls {
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change) {
             base.OnPropertyChanged(change);
-            if (change.Property == TickOffsetProperty ||
-                change.Property == TrackOffsetProperty ||
-                change.Property == TickWidthProperty ||
-                change.Property == TrackHeightProperty ||
-                change.Property == PartProperty ||
-                change.Property == ShowPitchProperty ||
-                change.Property == ShowFinalPitchProperty ||
-                change.Property == ShowVibratoProperty) {
-                InvalidateVisual();
-            }
+            InvalidateVisual();
         }
 
         public override void Render(DrawingContext context) {

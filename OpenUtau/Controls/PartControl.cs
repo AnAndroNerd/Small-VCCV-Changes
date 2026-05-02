@@ -117,9 +117,6 @@ namespace OpenUtau.App.Controls {
         private List<IDisposable> unbinds = new List<IDisposable>();
         private WriteableBitmap? bitmap;
         private int[] bitmapData;
-        private double cachedTickWidth = -1;
-        private WriteableBitmap? waveformBitmap;
-        private int[] waveformBitmapData = Array.Empty<int>();
 
         public PartControl(UPart part, PartsCanvas canvas) {
             this.part = part;
@@ -144,7 +141,6 @@ namespace OpenUtau.App.Controls {
                     if (task.IsFaulted) {
                         Log.Error(task.Exception, "Failed to build peaks");
                     } else {
-                        cachedTickWidth = -1; // force rebuild
                         InvalidateVisual();
                     }
                 }, CancellationToken.None, TaskContinuationOptions.None, scheduler);
@@ -158,11 +154,8 @@ namespace OpenUtau.App.Controls {
                 change.Property == TickWidthProperty) {
                 SetPosition();
             }
-            if (change.Property == TickWidthProperty) {
-                cachedTickWidth = -1; // force waveform rebuild on zoom
-            }
             if (change.Property == SelectedProperty ||
-                change.Property == TextProperty ||
+                change.Property == TextProperty || 
                 change.Property == FadeInProperty ||
                 change.Property == FadeOutProperty) {
                 InvalidateVisual();
@@ -219,17 +212,15 @@ namespace OpenUtau.App.Controls {
                 }
             } else if (part is UWavePart wavePart) {
                 // Waveform
-                if (waveformBitmap == null || cachedTickWidth != TickWidth) {
-                    RebuildWaveformBitmap(wavePart);
-                    cachedTickWidth = TickWidth;
-                }
-                if (waveformBitmap != null) {
-                    double partStartX = wavePart.position * TickWidth;
-                    double viewStartX = TickOffset * TickWidth;
-                    double bitmapOffsetX = Math.Max(0, viewStartX - partStartX);
-                    var srcRect = new Rect(bitmapOffsetX, 0, Width, Height);
-                    var dstRect = new Rect(1, 0, Width, Height);
-                    context.DrawImage(waveformBitmap, srcRect, dstRect);
+                try {
+                    DrawWaveform(wavePart, GetBitmap(ViewWidth));
+                    if (bitmap != null) {
+                        var srcRect = Bounds.WithY(0);
+                        var dstRect = Bounds.WithX(1).WithY(0);
+                        context.DrawImage(bitmap, srcRect, dstRect);
+                    }
+                } catch (Exception e) {
+                    Log.Error(e, "failed to draw bitmap");
                 }
                 // Fade
                 var brush = Brushes.White;
@@ -248,26 +239,7 @@ namespace OpenUtau.App.Controls {
                 }
             }
         }
-        private void RebuildWaveformBitmap(UWavePart wavePart) {
-            if (wavePart.Peaks == null ||
-                !wavePart.Peaks.IsCompletedSuccessfully ||
-                wavePart.Peaks.Result == null) {
-                return;
-            }
-            int w = Math.Max(1, (int)(wavePart.Duration * TickWidth));
-            int h = (int)ViewConstants.TrackHeightMax;
-            if (waveformBitmap == null ||
-                waveformBitmap.Size.Width != w ||
-                waveformBitmap.Size.Height != h) {
-                waveformBitmap?.Dispose();
-                waveformBitmap = new WriteableBitmap(
-                    new PixelSize(w, h), new Vector(96, 96),
-                    Avalonia.Platform.PixelFormat.Rgba8888,
-                    Avalonia.Platform.AlphaFormat.Unpremul);
-                waveformBitmapData = new int[w * h];
-            }
-            DrawWaveform(wavePart, waveformBitmap);
-        }
+
         private WriteableBitmap GetBitmap(double width) {
             int w = 128 * (int)(width / 128 + 1);
             if (bitmap == null || bitmap.Size.Width < w) {
@@ -361,7 +333,6 @@ namespace OpenUtau.App.Controls {
 
         public void Dispose() {
             bitmap?.Dispose();
-            waveformBitmap?.Dispose();
             unbinds.ForEach(u => u.Dispose());
             unbinds.Clear();
         }
