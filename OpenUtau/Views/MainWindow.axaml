@@ -213,7 +213,7 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="24"/>
             <RowDefinition Height="24"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="0.01"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="3*"
                            MinHeight="{Binding PianoRollMinHeight}"
@@ -368,13 +368,13 @@
                           IsVisible="{Binding IsWavePart}"
                           Command="{Binding PartReplaceAudioCommand}"
                           CommandParameter="{Binding Part}"/>
-                <MenuItem Header="{DynamicResource context.part.rename}"
-                          IsVisible="{Binding IsVoicePart}"
-                          Command="{Binding PartRenameCommand}"
-                          CommandParameter="{Binding Part}"/>
                 <MenuItem Header="{DynamicResource context.part.transcribe}"
                           IsVisible="{Binding IsWavePart}"
                           Command="{Binding PartTranscribeCommand}"
+                          CommandParameter="{Binding Part}"/>
+                <MenuItem Header="{DynamicResource context.part.rename}"
+                          IsVisible="{Binding IsVoicePart}"
+                          Command="{Binding PartRenameCommand}"
                           CommandParameter="{Binding Part}"/>
                 <MenuItem Header="{DynamicResource context.part.merge}"
                           IsVisible="{Binding IsVoicePart}"
@@ -384,6 +384,10 @@
                           IsVisible="{Binding IsVoicePart}"
                           Command="{Binding PartSplitCommand}"
                           CommandParameter="{Binding Part}"/>
+                <MenuItem Header="{DynamicResource context.part.applypitch}"
+                          IsVisible="{Binding IsVoicePart}"
+                          ItemsSource="{Binding PartApplyPitchMenuItems}"
+                          Classes="MenuItemWithSubMenu"/>
               </ContextMenu>
             </c:PartsCanvas.ContextMenu>
           </c:PartsCanvas>
@@ -399,7 +403,9 @@
           </Border>
           <GridSplitter Grid.Row="3" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                         Background="{DynamicResource SystemControlBackgroundAltHighBrush}" Focusable="False" Cursor="SizeNorthSouth" IsVisible="{Binding ShowPianoRoll}"/>
-          <ContentControl Name="PianoRollContainer" Grid.Row="4" Grid.ColumnSpan="3" Margin="0,-5" Padding="0,5"/>
+          <Canvas Grid.Row="4" Grid.ColumnSpan="3">
+            <ContentControl Name="PianoRollContainer" Width="{Binding $parent[Canvas].Bounds.Width}" Height="{Binding $parent[Canvas].Bounds.Height}"/>
+          </Canvas>
           <TextBlock Grid.Row="5" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Height="20" Margin="4,4,4,0" Text="{Binding ProgressText}"/>
           <ProgressBar Grid.Row="6" Grid.ColumnSpan="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Value="{Binding Progress}"/>
         </Grid>

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using OpenUtau.App.Controls;
 using OpenUtau.Core.Util;
 
@@ -22,10 +23,13 @@ namespace OpenUtau.App.Views {
             WindowState = (WindowState)Preferences.Default.PianorollWindowSize.State;
         }
 
+        public void WindowGotFocus(object sender, GotFocusEventArgs e) {
+            pianoRoll.Focus();
+        }
+
         public void WindowClosing(object? sender, WindowClosingEventArgs e) {
-            if (WindowState != WindowState.Maximized) {
-                Preferences.Default.PianorollWindowSize.Set(Width, Height, Position.X, Position.Y, (int)WindowState);
-            }
+            Preferences.Default.PianorollWindowSize.Set(Width, Height, Position.X, Position.Y, (int)WindowState);
+            Preferences.Save();
             Hide();
             e.Cancel = !forceClose;
         }
