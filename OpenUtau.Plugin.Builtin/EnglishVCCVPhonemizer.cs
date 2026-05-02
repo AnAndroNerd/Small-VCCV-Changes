@@ -24,7 +24,7 @@ namespace OpenUtau.Plugin.Builtin {
     public class EnglishVCCVPhonemizer : SyllableBasedPhonemizer {
         protected override string YamlFileName => "envccv.yaml";
         protected override byte[] YamlTemplate => Data.Resources.envccv_template;
-        protected override string YamlVersion => "1.1";
+        protected override string YamlVersion => "1.2";
         public EnglishVCCVPhonemizer() {
             this.vowels = "a,@,u,0,8,I,e,3,A,i,E,O,Q,6,o,1ng,9,&,x,1,Y,L,W,8n,Ang,9l".Split(',');
             this.consonants = "b,ch,d,dh,f,g,h,j,k,l,m,n,ng,p,r,s,sh,t,th,v,w,y,z,zh,dd,hh,sp,st".Split(',');
