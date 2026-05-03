@@ -175,7 +175,7 @@ namespace OpenUtau.Plugin.Builtin {
         public override void SetSinger(USinger singer) {
             base.SetSinger(singer);
 
-            if (this.singer == null) return;
+            if (this.singer == null || !this.singer.Loaded) return;
 
             string file = null;
             if (singer != null && singer.Found && singer.Loaded && !string.IsNullOrEmpty(singer.Location)) {
@@ -184,24 +184,31 @@ namespace OpenUtau.Plugin.Builtin {
                 file = Path.Combine(PluginDir, YamlFileName);
             }
 
-            if (string.IsNullOrEmpty(file) || !File.Exists(file)) return;
+            string yamlContent = null;
+            if (!string.IsNullOrEmpty(file) && File.Exists(file)) {
+                yamlContent = File.ReadAllText(file);
+            } else if (YamlTemplate != null) {
+                yamlContent = System.Text.Encoding.UTF8.GetString(YamlTemplate);
+            }
 
-            try {
-                var data = Core.Yaml.DefaultDeserializer.Deserialize<VcVowelYAMLData>(File.ReadAllText(file));
-                if (data?.vcvowels != null) {
-                    vcVowels.Clear();
-                    foreach (var kvp in data.vcvowels) {
-                        if (!string.IsNullOrEmpty(kvp.Key) && !string.IsNullOrEmpty(kvp.Value)) {
-                            vcVowels[kvp.Key] = kvp.Value;
+            if (!string.IsNullOrEmpty(yamlContent)) {
+                try {
+                    var data = Core.Yaml.DefaultDeserializer.Deserialize<VcVowelYAMLData>(yamlContent);
+                    if (data?.vcvowels != null) {
+                        vcVowels.Clear();
+                        foreach (var kvp in data.vcvowels) {
+                            if (!string.IsNullOrEmpty(kvp.Key) && !string.IsNullOrEmpty(kvp.Value)) {
+                                vcVowels[kvp.Key] = kvp.Value;
+                            }
                         }
                     }
+                } catch (Exception ex) {
+                    Log.Error($"Failed to load vcvowels from {YamlFileName}: {ex.Message}");
                 }
-            } catch (Exception ex) {
-                Log.Error($"Failed to load vcvowels from {YamlFileName}: {ex.Message}");
             }
         }
 
-        private class VcVowelYAMLData {
+        private class VcVowelYAMLData: YAMLData {
             public Dictionary<string, string> vcvowels { get; set; } = new Dictionary<string, string>();
         }
         // prioritize yaml replacements over dictionary replacements
