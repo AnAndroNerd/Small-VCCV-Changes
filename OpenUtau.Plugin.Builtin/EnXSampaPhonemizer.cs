@@ -205,6 +205,12 @@ namespace OpenUtau.Plugin.Builtin {
                 return null;
             }
             List<string> finalProcessedPhonemes = new List<string>();
+
+            for (int i = 0; i < original.Length; i++) {
+                if (dictionaryReplacements.TryGetValue(original[i], out string replaced)) {
+                    original[i] = replaced;
+                }
+            }
             
             // Splits diphthongs and affricates if not present in the bank
             string[] diphthongs = new[] { "aI", "eI", "OI", "aU", "oU", "VI", "VU", "@U", "ai", "ei", "Oi", "au", "ou", "Ou", "@u", };
@@ -226,10 +232,6 @@ namespace OpenUtau.Plugin.Builtin {
             // If the original phoneme has an OTO, use it directly.
             if (HasOto(phoneme, tone) || HasOto(ValidateAlias(phoneme), tone)) {
                 return phoneme;
-            }
-            // Otherwise, try to apply the dictionary replacement.
-            if (dictionaryReplacements.TryGetValue(phoneme, out var replaced)) {
-                return replaced;
             }
             return phoneme;
         }

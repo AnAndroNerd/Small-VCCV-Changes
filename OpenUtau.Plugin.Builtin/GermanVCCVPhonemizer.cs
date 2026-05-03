@@ -69,6 +69,12 @@ namespace OpenUtau.Plugin.Builtin {
                 return null;
             }
             List<string> finalProcessedPhonemes = new List<string>();
+            
+            for (int i = 0; i < original.Length; i++) {
+                if (dictionaryReplacements.TryGetValue(original[i], out string replaced)) {
+                    original[i] = replaced;
+                }
+            }
 
             string[] diphthongs = new[] { "aU", "OY", "aI" };
             foreach (string s in original) {
@@ -86,10 +92,6 @@ namespace OpenUtau.Plugin.Builtin {
             // If the original phoneme has an OTO, use it directly.
             if (HasOto(phoneme, tone) || HasOto(ValidateAlias(phoneme), tone)) {
                 return phoneme;
-            }
-            // Otherwise, try to apply the dictionary replacement.
-            if (dictionaryReplacements.TryGetValue(phoneme, out var replaced)) {
-                return replaced;
             }
             return phoneme;
         }
