@@ -1,7 +1,12 @@
-﻿using OpenUtau.Core;
+﻿using System.Text.RegularExpressions;
+using OpenUtau.Core;
 using OpenUtau.Core.Editing;
 using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Format;
+using OpenUtau.Plugin.Builtin;
+using Serilog;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace convel_batch_edit;
 
@@ -74,6 +79,146 @@ public class VccvConvel : BatchEdit {
                 docManager.ExecuteCmd(new SetNoteExpressionCommand(
                     project, project.tracks[part.trackNo], part,
                     note, Ustx.VEL, vel));
+            }
+            docManager.EndUndoGroup();
+        }
+    }
+
+    public class VCCVPhonemizerConvel : BatchEdit {
+        public virtual string Name => name;
+
+        private string name;
+
+        public VCCVPhonemizerConvel() {
+            name = "VCCV Phonemizer Convel";
+        }
+
+        private EnglishVCCVPhonemizer.CZSampaYAMLData LoadConfig(string path) {
+            if (!File.Exists(path)) return null;
+            try {
+                var yaml = File.ReadAllText(path);
+                var deserializer = new DeserializerBuilder()
+                    .IgnoreUnmatchedProperties()
+                    .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                    .Build();
+                return deserializer.Deserialize<EnglishVCCVPhonemizer.CZSampaYAMLData>(yaml);
+            } catch (Exception ex) {
+                Log.Error(ex, $"[VCCV Plugins] YAML Parsing Error in file: {path}");
+                return null;
+            }
+        }
+        public class VccvAliasClassifier {
+            private readonly Regex _vowel;
+            private readonly Regex _consonant;
+            private readonly Regex[] _patterns;
+            private readonly string[] _types;
+
+            public VccvAliasClassifier(EnglishVCCVPhonemizer.CZSampaYAMLData config) {
+                string V  = Alt(config.symbols.Where(s => s.type == "vowel").Select(s => s.symbol));
+                string C  = Alt(config.symbols.Where(s => s.type != "vowel").Select(s => s.symbol));
+                string C2 = Alt(["r", "l", "y", "w", "f"]);
+
+                _vowel    = new Regex($@"^{V}$", RegexOptions.Compiled);
+                _consonant = new Regex($@"^{C}$", RegexOptions.Compiled);
+
+                (_patterns, _types) = Build([
+                    ($@"^-{V}$",       "-V"),
+                    ($@"^_{V}$",       "_V"),
+                    ($@"^{V}-$",       "V-"),
+                    ($@"^-{C}{V}$",    "-CV"),
+                    ($@"^-{C}{C2}$",   "-CC"),
+                    ($@"^_{C}{V}$",    "_CV"),
+                    ($@"^{V}{C}{C}-$", "VCC-"),
+                    ($@"^{V}{C}{C}$",  "VCC"),
+                    ($@"^{V}{C}-$",    "VC-"),
+                    ($@"^{C}{C}-$",    "CC-"),
+                    ($@"^{V} {C}$",    "V C"),
+                    ($@"^{C} {C}$",    "C C"),
+                    ($@"^{V}{C} {C}$",    "VC C"),
+                    ($@"^{V}{C}$",     "VC"),
+                    ($@"^{C}{C2}$",    "onsetCC"),
+                    ($@"^{C}{C}$",     "codaCC"),
+                    ($@"^{C}{V}$",     "CV"),
+                    ($@"^{V}$",        "V"),
+                ]);
+            }
+
+            private static string Alt(IEnumerable<string> symbols) =>
+                $"({string.Join("|", symbols.Select(Regex.Escape).OrderByDescending(s => s.Length))})";
+
+            private static (Regex[], string[]) Build(IEnumerable<(string pattern, string type)> pairs) {
+                var list = pairs.ToArray();
+                return (
+                    list.Select(p => new Regex(p.pattern, RegexOptions.Compiled)).ToArray(),
+                    list.Select(p => p.type).ToArray()
+                );
+            }
+
+            public string Classify(string alias) {
+                for (int i = 0; i < _patterns.Length; i++)
+                    if (_patterns[i].IsMatch(alias)) return _types[i];
+                return "Unknown";
+            }
+            
+        }
+        
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
+            
+            EnglishVCCVPhonemizer.CZSampaYAMLData currentConfig = null;
+
+            var track = project.tracks[part.trackNo];
+            var singer = track.Singer;
+            
+            var vccvConvel = new VccvConvel();
+            TimeAxis timeAxis = project.timeAxis;
+
+            if (singer != null && !string.IsNullOrEmpty(singer.Location)) {
+                string singerConfigPath = Path.Combine(singer.Location, "envccv.yaml");
+                currentConfig = LoadConfig(singerConfigPath);
+            }
+            if (currentConfig == null) return;
+            
+            var aliasClassifier = new VccvAliasClassifier(currentConfig);
+            var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
+            if (notes.Count == 0) return;
+            
+            docManager.StartUndoGroup("command.batch.plugin", true);
+            Log.Debug($"[VCCVPhonemizerConvel] part.phonemes count: {part.phonemes.Count}");
+            foreach (var note in notes) {
+                float CalcConvel(UNote note, TimeAxis timeAxis) {
+                    float baseConvel = 100 * ((float)timeAxis.GetBpmAtTick(note.position) / 120);
+                    if (note.duration >= 480)
+                        return baseConvel + (50 - 100 * ((float)note.duration / 960));
+                    else
+                        return baseConvel + (100 - (100 * ((float)note.duration / 480)));
+                }
+                docManager.ExecuteCmd(new SetNoteExpressionCommand(
+                    project, project.tracks[part.trackNo], part,
+                    note, OpenUtau.Core.Format.Ustx.VEL, [CalcConvel(note, timeAxis)]));
+                var notePhonemes = part.phonemes.Where(p => p.Parent == note).ToList();
+                Log.Debug($"[VCCVPhonemizerConvel] note '{note.lyric}' has {notePhonemes.Count} phonemes");
+                foreach (var phoneme in notePhonemes) {
+                    var parentNote = phoneme.Parent;
+                    var type = aliasClassifier.Classify(phoneme.phoneme);
+                    Log.Debug($"[VCCVPhonemizerConvel] phoneme '{phoneme.phoneme}' -> '{type}'");
+                    float? prevVel = phoneme.Prev?.GetExpression(project,track, Ustx.VEL).Item1;
+                    float? nextVel = phoneme.Next?.GetExpression(project,track, Ustx.VEL).Item1;
+
+                    switch (type) {
+                        case "V C": case "VC": case "VC-":
+                        case "VCC": case "VCC-": case "codaCC": case "C C":
+                        case "VC C":
+                            if (prevVel != null)
+                                docManager.ExecuteCmd(new SetPhonemeExpressionCommand(
+                                    project, track, part, phoneme, Ustx.VEL, prevVel));
+                            break;
+                        case "onsetCC":
+                            if (nextVel != null)
+                                docManager.ExecuteCmd(new SetPhonemeExpressionCommand(
+                                    project, track, part, phoneme, Ustx.VEL, nextVel));
+                            break;
+                    }
+                }
             }
             docManager.EndUndoGroup();
         }
