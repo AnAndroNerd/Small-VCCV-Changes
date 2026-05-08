@@ -55,6 +55,7 @@ namespace OpenUtau.App.ViewModels {
             get => audioOutputDevice;
             set => this.RaiseAndSetIfChanged(ref audioOutputDevice, value);
         }
+        [Reactive] public partial bool UseSystemDefaultDevice { get; set; }
         [Reactive] public partial int PreferPortAudio { get; set; }
         [Reactive] public partial int LockStartTime { get; set; }
         [Reactive] public partial int PlaybackAutoScroll { get; set; }
@@ -138,6 +139,7 @@ namespace OpenUtau.App.ViewModels {
                     AudioOutputDevice = device;
                 }
             }
+            UseSystemDefaultDevice = Preferences.Default.UseSystemDefaultAudioDevice;
             PreferPortAudio = Preferences.Default.PreferPortAudio ? 1 : 0;
             PlaybackAutoScroll = Preferences.Default.PlaybackAutoScroll;
             PlayPosMarkerMargin = Preferences.Default.PlayPosMarkerMargin;
@@ -194,10 +196,18 @@ namespace OpenUtau.App.ViewModels {
             MessageBus.Current.Listen<ThemeEditorStateChangedEvent>()
                 .Subscribe(_ => this.RaisePropertyChanged(nameof(IsThemeEditorOpen)));
             
+            this.WhenAnyValue(vm => vm.UseSystemDefaultDevice)
+                .Subscribe(useDefault => {
+                    Preferences.Default.UseSystemDefaultAudioDevice = useDefault;
+                    Preferences.Save();
+                });
             this.WhenAnyValue(vm => vm.AudioOutputDevice)
                 .WhereNotNull()
                 .SubscribeOn(AvaloniaScheduler.Instance)
                 .Subscribe(device => {
+                    if (UseSystemDefaultDevice) {
+                        return;
+                    }
                     if (PlaybackManager.Inst.AudioOutput != null) {
                         try {
                             PlaybackManager.Inst.AudioOutput.SelectDevice(device.guid, device.deviceNumber);
