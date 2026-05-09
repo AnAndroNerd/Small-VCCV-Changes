@@ -181,6 +181,12 @@ public class VccvConvel : BatchEdit {
             var aliasClassifier = new VccvAliasClassifier(currentConfig);
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             if (notes.Count == 0) return;
+
+            UNote GetNoteForPhoneme(UPhoneme phoneme) {
+                return part.notes.FirstOrDefault(n =>
+                           n.PositionMs <= phoneme.PositionMs && phoneme.PositionMs < n.EndMs)
+                       ?? part.notes.First();
+            }
             
             docManager.StartUndoGroup("command.batch.plugin", true);
             Log.Debug($"[VCCVPhonemizerConvel] part.phonemes count: {part.phonemes.Count}");
@@ -192,17 +198,12 @@ public class VccvConvel : BatchEdit {
                     else
                         return baseConvel + (100 - (100 * ((float)note.duration / 480)));
                 }
-                docManager.ExecuteCmd(new SetNoteExpressionCommand(
-                    project, project.tracks[part.trackNo], part,
-                    note, OpenUtau.Core.Format.Ustx.VEL, [CalcConvel(note, timeAxis)]));
                 var notePhonemes = part.phonemes.Where(p => p.Parent == note).ToList();
-                Log.Debug($"[VCCVPhonemizerConvel] note '{note.lyric}' has {notePhonemes.Count} phonemes");
                 foreach (var phoneme in notePhonemes) {
-                    var parentNote = phoneme.Parent;
                     var type = aliasClassifier.Classify(phoneme.phoneme);
-                    Log.Debug($"[VCCVPhonemizerConvel] phoneme '{phoneme.phoneme}' -> '{type}'");
                     float? prevVel = phoneme.Prev?.GetExpression(project,track, Ustx.VEL).Item1;
                     float? nextVel = phoneme.Next?.GetExpression(project,track, Ustx.VEL).Item1;
+                    var targetNote = GetNoteForPhoneme(phoneme);
 
                     switch (type) {
                         case "V C": case "VC": case "VC-":
@@ -216,6 +217,10 @@ public class VccvConvel : BatchEdit {
                             if (nextVel != null)
                                 docManager.ExecuteCmd(new SetPhonemeExpressionCommand(
                                     project, track, part, phoneme, Ustx.VEL, nextVel));
+                            break;
+                        default:
+                                docManager.ExecuteCmd(new SetPhonemeExpressionCommand(
+                                    project, track, part, phoneme, Ustx.VEL, CalcConvel(targetNote, timeAxis)));
                             break;
                     }
                 }
