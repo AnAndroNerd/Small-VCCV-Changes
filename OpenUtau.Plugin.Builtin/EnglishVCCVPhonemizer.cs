@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Classic;
 using OpenUtau.Api;
 using OpenUtau.Classic;
@@ -215,6 +216,112 @@ namespace OpenUtau.Plugin.Builtin {
                 return replaced;
             }
             return phoneme;
+        }
+
+        public override Result Process(Note[] notes, Note? prev, Note? next, Note? prevNeighbour, Note? nextNeighbour, Note[] prevs) {
+            var result = base.Process(notes, prev, next, prevNeighbour, nextNeighbour, prevs);
+
+            float CalcConvel(Note note, Note? nextNote = null) {
+                float baseConvel = 100 * ((float)timeAxis.GetBpmAtTick(note.position) / 120);
+                int duration = nextNote.HasValue
+                    ? Math.Max(1, nextNote.Value.position - note.position)
+                    : note.duration;
+                if (duration >= 480)
+                    return baseConvel + (50 - 100 * ((float)duration / 960));
+                else
+                    return baseConvel + (100 - (100 * ((float)duration / 480)));
+            }
+
+            string Alt(IEnumerable<string> symbols) =>
+                $"({string.Join("|", symbols.Select(Regex.Escape).OrderByDescending(s => s.Length))})";
+
+            string V  = Alt(vowels);
+            string C  = Alt(consonants);
+            string C2 = Alt(liquid.Concat(semivowel));
+
+            var patterns = new (Regex pattern, string type)[] {
+                (new Regex($@"^-{V}$"),       "-V"),
+                (new Regex($@"^_{V}$"),       "_V"),
+                (new Regex($@"^{V}-$"),       "V-"),
+                (new Regex($@"^-{C}{V}$"),    "-CV"),
+                (new Regex($@"^-{C}{C2}$"),   "-CC"),
+                (new Regex($@"^_{C}{V}$"),    "_CV"),
+                (new Regex($@"^{V}{C}{C}-$"), "VCC-"),
+                (new Regex($@"^{V}{C}{C}$"),  "VCC"),
+                (new Regex($@"^{V}{C}-$"),    "VC-"),
+                (new Regex($@"^{C}{C}-$"),    "CC-"),
+                (new Regex($@"^{V} {C}$"),    "V C"),
+                (new Regex($@"^{C} {C}$"),    "C C"),
+                (new Regex($@"^{V}{C} {C}$"), "VC C"),
+                (new Regex($@"^{V}{C}$"),     "VC"),
+                (new Regex($@"^{C}{C2}$"),    "onsetCC"),
+                (new Regex($@"^{C}{C}$"),     "codaCC"),
+                (new Regex($@"^{C}{V}$"),     "CV"),
+                (new Regex($@"^{V}$"),        "V"),
+            };
+
+            string Classify(string alias) {
+                foreach (var (pattern, type) in patterns)
+                    if (pattern.IsMatch(alias)) return type;
+                return "Unknown";
+            }
+
+            Note GetNoteForPhoneme(Phoneme phoneme, Note[] currentNotes) {
+                int absPos = currentNotes[0].position + phoneme.position;
+                return currentNotes.FirstOrDefault(
+                    n => n.position <= absPos && absPos < n.position + n.duration,
+                    currentNotes[0]);
+            }
+
+            var prevVel = prevNeighbour.HasValue ? CalcConvel(prevNeighbour.Value, notes[0]) : (float?)null;
+            var nextVel = nextNeighbour.HasValue ? CalcConvel(nextNeighbour.Value) : (float?)null;
+
+
+            for (int i = 0; i < result.phonemes.Length; i++) {
+                var phoneme = result.phonemes[i];
+                if (phoneme.phoneme == null) continue;
+
+                
+                float noteVel = CalcConvel(GetNoteForPhoneme(phoneme, notes), nextNeighbour);
+                
+                if (i > 0 && result.phonemes[i - 1].phoneme != null) {
+                    var exprs = result.phonemes[i - 1].expressions;
+                    if (exprs != null) {
+                        var velExpr = exprs.FirstOrDefault(e => e.abbr == "vel");
+                        if (velExpr.abbr == "vel")
+                            prevVel = velExpr.value;
+                    }
+                }
+
+                nextVel = nextNeighbour.HasValue ? CalcConvel(nextNeighbour.Value) : (float?)null;
+                
+                float vel;
+                switch (Classify(phoneme.phoneme)) {
+                    case "V C": case "VC": case "VC-":
+                    case "VCC": case "VCC-": case "codaCC": case "C C":
+                    case "VC C": case "-V":
+                        if (GetNoteForPhoneme(phoneme, notes).lyric == "+" ||
+                            GetNoteForPhoneme(phoneme, notes).lyric == "+") {
+                            vel = noteVel;
+                            break;
+                        }
+                        vel = prevVel ?? noteVel;
+                        break;
+                    case "onsetCC":
+                        vel = nextVel ?? noteVel;
+                        break;
+                    default:
+                        vel = noteVel;
+                        break;
+                }
+
+                phoneme.expressions = new List<PhonemeExpression> {
+                    new PhonemeExpression { abbr = "vel", value = vel }
+                };
+                result.phonemes[i] = phoneme;
+            }
+
+            return result;
         }
 
         protected override List<string> ProcessSyllable(Syllable syllable) {
