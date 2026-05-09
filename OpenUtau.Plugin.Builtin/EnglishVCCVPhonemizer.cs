@@ -217,19 +217,30 @@ namespace OpenUtau.Plugin.Builtin {
             }
             return phoneme;
         }
+        
+        
+        private List<UNote> unotes = new();
 
+        public override void SetUp(Note[][] notes, UProject project, UTrack track) {
+            base.SetUp(notes, project, track);
+            int trackNo = project.tracks.IndexOf(track);
+            var part = project.parts.OfType<UVoicePart>()
+                .FirstOrDefault(p => p.trackNo == trackNo);
+            unotes = part?.notes.OrderBy(n => n.position).ToList() ?? new List<UNote>();
+        }
+        
         public override Result Process(Note[] notes, Note? prev, Note? next, Note? prevNeighbour, Note? nextNeighbour, Note[] prevs) {
             var result = base.Process(notes, prev, next, prevNeighbour, nextNeighbour, prevs);
 
-            float CalcConvel(Note note, Note? nextNote = null) {
+            float CalcConvel(UNote note) {
                 float baseConvel = 100 * ((float)timeAxis.GetBpmAtTick(note.position) / 120);
-                int duration = nextNote.HasValue
-                    ? Math.Max(1, nextNote.Value.position - note.position)
-                    : note.duration;
-                if (duration >= 480)
-                    return baseConvel + (50 - 100 * ((float)duration / 960));
+                float finalConvel;
+                
+                if (note.duration >= 480)
+                    finalConvel = baseConvel + (50 - 100 * ((float)note.duration / 960));
                 else
-                    return baseConvel + (100 - (100 * ((float)duration / 480)));
+                    finalConvel = baseConvel + (100 - (100 * ((float)note.duration / 480)));
+                return Math.Clamp(finalConvel, 0, 200);
             }
 
             string Alt(IEnumerable<string> symbols) =>
@@ -273,16 +284,27 @@ namespace OpenUtau.Plugin.Builtin {
                     currentNotes[0]);
             }
 
-            var prevVel = prevNeighbour.HasValue ? CalcConvel(prevNeighbour.Value, notes[0]) : (float?)null;
-            var nextVel = nextNeighbour.HasValue ? CalcConvel(nextNeighbour.Value) : (float?)null;
+            (UNote un, UNote unNext) UNoteAt(int absPos) {
+                var un = unotes.LastOrDefault(n => n.position <= absPos) ?? unotes[0];
+                int idx = unotes.IndexOf(un);
+                return (un, idx + 1 < unotes.Count ? unotes[idx + 1] : null);
+            }
+            
+            var (curUN, nextUN) = UNoteAt(notes[0].position);
+            int curIdx = unotes.IndexOf(curUN);
+            var prevUN = curIdx > 0 ? unotes[curIdx - 1] : null;
 
+            var prevVel = prevUN != null ? (float?)CalcConvel(prevUN) : null;
+            var nextVel = nextUN != null ? (float?)CalcConvel(nextUN) : null;
 
             for (int i = 0; i < result.phonemes.Length; i++) {
                 var phoneme = result.phonemes[i];
                 if (phoneme.phoneme == null) continue;
 
                 
-                float noteVel = CalcConvel(GetNoteForPhoneme(phoneme, notes), nextNeighbour);
+                int absPos = notes[0].position + phoneme.position;
+                var (phonemeUN, phonemeUNNext) = UNoteAt(absPos);
+                float noteVel = CalcConvel(phonemeUN);
                 
                 if (i > 0 && result.phonemes[i - 1].phoneme != null) {
                     var exprs = result.phonemes[i - 1].expressions;
@@ -293,13 +315,19 @@ namespace OpenUtau.Plugin.Builtin {
                     }
                 }
 
-                nextVel = nextNeighbour.HasValue ? CalcConvel(nextNeighbour.Value) : (float?)null;
+                if (i < result.phonemes.Length - 1 && result.phonemes[i + 1].phoneme != null) {
+                    var nextPhoneme = result.phonemes[i + 1];
+                    bool foundNextVel = false;
+                    int nextAbsPos = notes[0].position + nextPhoneme.position;
+                    var (nextPhonemeUN, _) = UNoteAt(nextAbsPos);
+                    nextVel = CalcConvel(nextPhonemeUN);
+                }
                 
                 float vel;
                 switch (Classify(phoneme.phoneme)) {
                     case "V C": case "VC": case "VC-":
                     case "VCC": case "VCC-": case "codaCC": case "C C":
-                    case "VC C": case "-V":
+                    case "VC C":
                         if (GetNoteForPhoneme(phoneme, notes).lyric == "+" ||
                             GetNoteForPhoneme(phoneme, notes).lyric == "+") {
                             vel = noteVel;
@@ -307,7 +335,7 @@ namespace OpenUtau.Plugin.Builtin {
                         }
                         vel = prevVel ?? noteVel;
                         break;
-                    case "onsetCC":
+                    case "onsetCC": case "-CC":
                         vel = nextVel ?? noteVel;
                         break;
                     default:
