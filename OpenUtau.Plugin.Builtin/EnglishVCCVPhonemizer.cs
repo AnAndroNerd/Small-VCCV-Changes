@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Classic;
 using OpenUtau.Api;
 using OpenUtau.Classic;
+using OpenUtau.Core;
 using OpenUtau.Core.G2p;
 using OpenUtau.Core.Ustx;
 using Serilog;
@@ -39,6 +40,7 @@ namespace OpenUtau.Plugin.Builtin {
         }
         
         private bool isYamlFallbacks = false;
+        private bool useConvel = true;
 
         private readonly Dictionary<string, string> vcExceptions =
             new Dictionary<string, string>() {
@@ -188,7 +190,7 @@ namespace OpenUtau.Plugin.Builtin {
             if (string.IsNullOrEmpty(file) || !File.Exists(file)) return;
 
             try {
-                var data = Core.Yaml.DefaultDeserializer.Deserialize<VcVowelYAMLData>(File.ReadAllText(file));
+                var data = Core.Yaml.DefaultDeserializer.Deserialize<VCCVYAMLData>(File.ReadAllText(file));
                 if (data?.vcvowels != null) {
                     vcVowels.Clear();
                     foreach (var kvp in data.vcvowels) {
@@ -197,14 +199,20 @@ namespace OpenUtau.Plugin.Builtin {
                         }
                     }
                 }
+
+                if (data?.useconvel != null) {
+                    useConvel = data.useconvel.Value;
+                }
             } catch (Exception ex) {
-                Log.Error($"Failed to load vcvowels from {YamlFileName}: {ex.Message}");
+                Log.Error($"Failed to load vccv specific features from {YamlFileName}: {ex.Message}");
             }
         }
 
-        private class VcVowelYAMLData {
+        private class VCCVYAMLData {
             public Dictionary<string, string> vcvowels { get; set; } = new Dictionary<string, string>();
+            public bool? useconvel { get; set; }
         }
+        
         // prioritize yaml replacements over dictionary replacements
         private string ReplacePhoneme(string phoneme, int tone) {
             // If the original phoneme has an OTO, use it directly.
@@ -218,37 +226,48 @@ namespace OpenUtau.Plugin.Builtin {
             return phoneme;
         }
         
-        
+        // this lets us get the unotes and utrack for convel
         private List<UNote> unotes = new();
+        private UTrack utrack;
 
         public override void SetUp(Note[][] notes, UProject project, UTrack track) {
             base.SetUp(notes, project, track);
+            utrack = track;
             int trackNo = project.tracks.IndexOf(track);
             var part = project.parts.OfType<UVoicePart>()
                 .FirstOrDefault(p => p.trackNo == trackNo);
             unotes = part?.notes.OrderBy(n => n.position).ToList() ?? new List<UNote>();
         }
         
+        // Automatic convel
         public override Result Process(Note[] notes, Note? prev, Note? next, Note? prevNeighbour, Note? nextNeighbour, Note[] prevs) {
             var result = base.Process(notes, prev, next, prevNeighbour, nextNeighbour, prevs);
+            // Added so tests work or if the user disabled convel in the YAML
+            if (unotes.Count == 0 || !useConvel) return result;
 
             float CalcConvel(UNote note) {
                 float baseConvel = 100 * ((float)timeAxis.GetBpmAtTick(note.position) / 120);
                 float finalConvel;
+                var trackVel = utrack?.TrackExpressions?.FirstOrDefault(e => e.abbr == "vel");
+                float velMin = trackVel?.min ?? 0f;
+                float velMax = trackVel?.max ?? 200f;
                 
                 if (note.duration >= 480)
                     finalConvel = baseConvel + (50 - 100 * ((float)note.duration / 960));
                 else
                     finalConvel = baseConvel + (100 - (100 * ((float)note.duration / 480)));
-                return Math.Clamp(finalConvel, 0, 200);
+                
+                return Math.Clamp(finalConvel, velMin, velMax);
             }
+            
+            #region regex
 
             string Alt(IEnumerable<string> symbols) =>
                 $"({string.Join("|", symbols.Select(Regex.Escape).OrderByDescending(s => s.Length))})";
 
             string V  = Alt(vowels);
             string C  = Alt(consonants);
-            string C2 = Alt(liquid.Concat(semivowel));
+            string C2 = Alt(ucvCs);
 
             var patterns = new (Regex pattern, string type)[] {
                 (new Regex($@"^-{V}$"),       "-V"),
@@ -276,6 +295,8 @@ namespace OpenUtau.Plugin.Builtin {
                     if (pattern.IsMatch(alias)) return type;
                 return "Unknown";
             }
+
+            #endregion
 
             Note GetNoteForPhoneme(Phoneme phoneme, Note[] currentNotes) {
                 int absPos = currentNotes[0].position + phoneme.position;
