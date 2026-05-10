@@ -291,6 +291,7 @@ namespace OpenUtau.Plugin.Builtin {
             };
 
             string Classify(string alias) {
+                if (starlightccs.Contains(alias)) return "codaCC";
                 foreach (var (pattern, type) in patterns)
                     if (pattern.IsMatch(alias)) return type;
                 return "Unknown";
