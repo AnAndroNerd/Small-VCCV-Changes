@@ -211,16 +211,16 @@ namespace OpenUtau.Plugin.Builtin {
                         }
                     }
     
-                if (data?.useconvel != null) {
-                    useConvel = data.useconvel.Value;
-                }
-            } catch (Exception ex) {
+                    if (data?.useconvel != null) {
+                        useConvel = data.useconvel.Value;
+                    }
+                } catch (Exception ex) {
                     Log.Error($"Failed to load vccv specific features from {YamlFileName}: {ex.Message}");
                 }
             }
         }
 
-        private class VcVowelYAMLData: YAMLData {
+        private class VCCVYAMLData: YAMLData {
             public Dictionary<string, string> vcvowels { get; set; } = new Dictionary<string, string>();
             public bool? useconvel { get; set; }
         }
