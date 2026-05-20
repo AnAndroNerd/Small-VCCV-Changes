@@ -64,7 +64,6 @@ namespace OpenUtau.Core {
             if (fromStart) {
                 part.position -= deltaDur;
                 part.Duration += deltaDur;
-                part.notes.ForEach(note => note.position += deltaDur);
                 foreach (var curve in part.curves) {
                     for (var i = 0; i < curve.xs.Count; i++) {
                         curve.xs[i] += deltaDur;
@@ -78,7 +77,6 @@ namespace OpenUtau.Core {
             if (fromStart) {
                 part.position += deltaDur;
                 part.Duration -= deltaDur;
-                part.notes.ForEach(note => note.position -= deltaDur);
                 foreach (var curve in part.curves) {
                     for (var i = 0; i < curve.xs.Count; i++) {
                         curve.xs[i] -= deltaDur;

@@ -70,7 +70,7 @@ namespace OpenUtau.Core.Vogen {
             VogenMeta meta;
             byte[] model;
             byte[] avatar = null;
-            using (var archive = ArchiveFactory.Open(filePath)) {
+            using (var archive = ArchiveFactory.OpenArchive(filePath)) {
                 var metaEntry = archive.Entries.First(e => e.Key == "meta.json");
                 if (metaEntry == null) {
                     throw new ArgumentException("missing meta.json");

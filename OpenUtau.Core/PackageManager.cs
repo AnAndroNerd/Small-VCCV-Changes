@@ -195,7 +195,7 @@ namespace OpenUtau.Core {
         }
 
         public async Task InstallFromStreamAsync(Stream stream, string expectedId, string expectedVersion) {
-            using var archive = ArchiveFactory.Open(stream);
+            using var archive = ArchiveFactory.OpenArchive(stream);
             DocManager.Inst.ExecuteCmd(new ProgressBarNotification(0, "Installing dependency"));
             var metadataEntry = archive.Entries.FirstOrDefault(e => e.Key == "oudep.yaml");
             if (metadataEntry == null) {
