@@ -45,8 +45,13 @@ namespace OpenUtau.Core {
         public string version = string.Empty;
         public string description = string.Empty;
         public string @class = string.Empty;
+        
+        // If none of these are set, the oudep installs to DependencyPath
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool? isPlugin = false;
+        public bool? isTheme = false;
     }
-
+    
 
 
     public class PackageManager : SingletonBase<PackageManager> {
@@ -180,8 +185,13 @@ namespace OpenUtau.Core {
 
         public async Task UninstallAsync(string id) {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            var basePath = Path.Combine(PathManager.Inst.DependencyPath, id);
-            if (!Directory.Exists(basePath)) return;
+            var candidates = new[] {
+                Path.Combine(PathManager.Inst.DependencyPath, id),
+                Path.Combine(PathManager.Inst.PluginsPath, id),
+                Path.Combine(PathManager.Inst.ThemesPath, id),
+            };
+            var basePath = candidates.FirstOrDefault(Directory.Exists);
+            if (basePath == null) return;
             try {
                 await Task.Run(() => Directory.Delete(basePath, true));
             } catch (Exception e) {
@@ -215,8 +225,15 @@ namespace OpenUtau.Core {
             if (string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(metadata.name)) {
                 id = metadata.name;
             }
+
+            string ResolveBasePath() {
+                if (metadata.isPlugin == true) return Path.Combine(PathManager.Inst.PluginsPath, id);
+                if (metadata.isTheme == true) return Path.Combine(PathManager.Inst.ThemesPath, id);
+                return Path.Combine(PathManager.Inst.DependencyPath, id);
+            }
+            var basePath = ResolveBasePath();
+
             await Task.Run(() => {
-                var basePath = Path.Combine(PathManager.Inst.DependencyPath, id);
                 try {
                     if (Directory.Exists(basePath)) {
                         Directory.Delete(basePath, true);
@@ -226,7 +243,6 @@ namespace OpenUtau.Core {
                 }
                 foreach (var entry in archive.Entries) {
                     if (string.IsNullOrEmpty(entry.Key) || entry.Key.Contains("..")) {
-                        // Prevent zipSlip attack
                         continue;
                     }
                     var filePath = Path.Combine(basePath, entry.Key);
