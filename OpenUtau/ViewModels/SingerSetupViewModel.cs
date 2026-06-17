@@ -96,13 +96,13 @@ namespace OpenUtau.App.ViewModels {
         }
 
         private bool IsEncrypted(string archiveFilePath) {
-            using (var archive = ArchiveFactory.OpenArchive(archiveFilePath)) {
+            using (var archive = ArchiveFactory.OpenArchive(archiveFilePath, new ReaderOptions())) {
                 return archive.Entries.Any(e => e.IsEncrypted);
             }
         }
 
         private VoicebankConfig? LoadCharacterYaml(string archiveFilePath) {
-            using (var archive = ArchiveFactory.OpenArchive(archiveFilePath)) {
+            using (var archive = ArchiveFactory.OpenArchive(archiveFilePath, new ReaderOptions())) {
                 var entry = archive.Entries.FirstOrDefault(e => Path.GetFileName(e.Key)=="character.yaml");
                 if (entry == null) {
                     return null;

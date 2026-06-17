@@ -52,16 +52,6 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial double PlayPosHighlightX { get; set; }
         [Reactive] public partial double PlayPosHighlightWidth { get; set; }
         [Reactive] public partial bool PlayPosWaitingRendering { get; set; }
-        [Reactive] public partial bool CursorTool { get; set; }
-        [Reactive] public partial bool PenTool { get; set; }
-        [Reactive] public partial bool PenPlusTool { get; set; }
-        [Reactive] public partial bool EraserTool { get; set; }
-        [Reactive] public partial bool DrawPitchTool { get; set; }
-        [Reactive] public partial bool DrawLinePitchTool { get; set; }
-        [Reactive] public partial bool OverwritePitchTool { get; set; }
-        [Reactive] public partial bool OverwriteLinePitchTool { get; set; }
-        [Reactive] public partial bool KnifeTool { get; set; }
-        public ReactiveCommand<string, Unit> SelectToolCommand { get; }
         [Reactive] public partial bool ShowTips { get; set; }
         [Reactive] public partial bool PlayTone { get; set; }
         [Reactive] public partial bool ShowVibrato { get; set; }
@@ -77,7 +67,7 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial Rect ExpBounds { get; set; }
         [Reactive] public partial string PrimaryKey { get; set; }
         [Reactive] public partial bool PrimaryKeyNotSupported { get; set; }
-        [Reactive] public partial bool ShowCurveToolbox { get; set; }
+        [Reactive] public partial bool ShowCurveToolbar { get; set; }
         [Reactive] public partial string SecondaryKey { get; set; }
         [Reactive] public partial double ExpTrackHeight { get; set; }
         [Reactive] public partial double ExpShadowOpacity { get; set; }
@@ -168,11 +158,11 @@ namespace OpenUtau.App.ViewModels {
                             ExpTrackHeight = t.Item1.Height / descriptor.options.Length;
                             ExpShadowOpacity = 0;
                         }
-                        ShowCurveToolbox = descriptor.type == UExpressionType.Curve;
+                        ShowCurveToolbar = descriptor.type == UExpressionType.Curve;
                     } else {
                         ExpTrackHeight = 0;
                         ExpShadowOpacity = 0.3;
-                        ShowCurveToolbox = false;
+                        ShowCurveToolbar = false;
                     }
                 });
             this.WhenAnyValue(x => x.Project)
@@ -205,32 +195,6 @@ namespace OpenUtau.App.ViewModels {
                             CommandParameter = index,
                         }));
                 });
-
-            CursorTool = false;
-            if (Preferences.Default.PenPlusDefault) {
-                PenPlusTool = true;
-                PenTool = false;
-            } else {
-                PenTool = true;
-                PenPlusTool = false;
-            }
-            EraserTool = false;
-            DrawPitchTool = false;
-            DrawLinePitchTool = false;
-            OverwritePitchTool = false;
-            OverwriteLinePitchTool = false;
-            KnifeTool = false;
-            SelectToolCommand = ReactiveCommand.Create<string>(index => {
-                CursorTool = index == "1";
-                PenTool = index == "2";
-                PenPlusTool = index == "2+";
-                EraserTool = index == "3";
-                DrawPitchTool = index == "4";
-                OverwritePitchTool = index == "4+";
-                DrawLinePitchTool = index == "4++";
-                OverwriteLinePitchTool = index == "4+++";
-                KnifeTool = index == "5";
-            });
 
             ShowTips = Preferences.Default.ShowTips;
             IsSnapOn = true;
@@ -992,7 +956,9 @@ namespace OpenUtau.App.ViewModels {
                 DocManager.Inst.ExecuteCmd(new ProgressBarNotification(0, ThemeManager.GetString("progress.clearingcache")));
                 var selectedNotes = Selection.ToList();
                 var phrases = Part.renderPhrases.Where(phrase => selectedNotes.Any(note => phrase.notes.Any(rnote => rnote.position == Part.position + note.position - phrase.position && rnote.duration == note.duration)));
-                phrases.ForEach(phrase => phrase.DeleteCacheFiles());
+                foreach (var phrase in phrases) {
+                    phrase.DeleteCacheFiles();
+                }
                 DocManager.Inst.ExecuteCmd(new ProgressBarNotification(0, ThemeManager.GetString("progress.cachecleared")));
             }
         }

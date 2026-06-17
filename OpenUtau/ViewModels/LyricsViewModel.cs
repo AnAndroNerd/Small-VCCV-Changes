@@ -7,12 +7,12 @@ using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
-    partial class LyricsViewModel : ViewModelBase {
+    class LyricsViewModel : ViewModelBase {
         [Reactive] public partial string? Text { get; set; } = string.Empty;
         [Reactive] public partial int CurrentCount { get; set; }
         [Reactive] public partial int TotalCount { get; set; }
-        [Reactive] public partial bool LivePreview { get; set; } = true;
-        [Reactive] public partial bool ApplySelection { get; set; } = true;
+        [Reactive] public partial bool LivePreview { get; set; } = Preferences.Default.LyricLivePreview;
+        [Reactive] public partial bool ApplySelection { get; set; } = Preferences.Default.LyricApplySelectionOnly;
 
         private UVoicePart? part;
         private UNote[]? notes;
@@ -84,11 +84,17 @@ namespace OpenUtau.App.ViewModels {
         public void Cancel() {
             DocManager.Inst.RollBackUndoGroup();
             DocManager.Inst.EndUndoGroup();
+            Preferences.Default.LyricLivePreview = LivePreview;
+            Preferences.Default.LyricApplySelectionOnly = ApplySelection;
+            Preferences.Save();
         }
 
         public void Finish() {
             Preview(true);
             DocManager.Inst.EndUndoGroup();
+            Preferences.Default.LyricLivePreview = LivePreview;
+            Preferences.Default.LyricApplySelectionOnly = ApplySelection;
+            Preferences.Save();
         }
     }
 }
