@@ -78,10 +78,10 @@ namespace OpenUtau.App.ViewModels {
         }
 
         public EditTool EditTool { get; set; } = Preferences.Default.EditTool;
-        [Reactive] public int ToolIndex { get; set; } = Preferences.Default.EditTool.BaseTool;
-        [Reactive] public int PenToolIndex { get; set; } = Preferences.Default.EditTool.PenToolVariation;
-        [Reactive] public int DrawPitchToolIndex { get; set; } = Preferences.Default.EditTool.DrawPitchToolVariation;
-        [Reactive] public int DrawLinePitchToolIndex { get; set; } = Preferences.Default.EditTool.DrawLinePitchToolVariation;
+        [Reactive] public partial int ToolIndex { get; set; } = Preferences.Default.EditTool.BaseTool;
+        [Reactive] public partial int PenToolIndex { get; set; } = Preferences.Default.EditTool.PenToolVariation;
+        [Reactive] public partial int DrawPitchToolIndex { get; set; } = Preferences.Default.EditTool.DrawPitchToolVariation;
+        [Reactive] public partial int DrawLinePitchToolIndex { get; set; } = Preferences.Default.EditTool.DrawLinePitchToolVariation;
 
         public ObservableCollectionExtended<MenuItemViewModel> LegacyPlugins { get; private set; }
             = new ObservableCollectionExtended<MenuItemViewModel>();

@@ -7,7 +7,7 @@ using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
-    class LyricsViewModel : ViewModelBase {
+   public partial class LyricsViewModel : ViewModelBase {
         [Reactive] public partial string? Text { get; set; } = string.Empty;
         [Reactive] public partial int CurrentCount { get; set; }
         [Reactive] public partial int TotalCount { get; set; }
