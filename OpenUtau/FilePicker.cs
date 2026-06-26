@@ -10,6 +10,7 @@ using OpenUtau.Core.Util;
 #if MACOS
 using MonoMac.Foundation;
 using MonoMac.AppKit;
+using Serilog;
 #endif
 
 namespace OpenUtau.App {
@@ -137,7 +138,7 @@ namespace OpenUtau.App {
                             tcs.SetResult(null);
                         }
                     } catch (Exception ex) {
-                        Console.WriteLine($"Exception: {ex}");
+                        Log.Error($"Failed to open native macOS file manager: {ex}");
                         tcs.SetException(ex);
                     }
                 });
