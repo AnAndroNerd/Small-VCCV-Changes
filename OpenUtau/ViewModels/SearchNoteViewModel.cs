@@ -8,7 +8,7 @@ using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
-    partial class SearchNoteViewModel : ViewModelBase {
+    partial class SearchNoteViewModel : ViewModelBase, ICmdSubscriber {
         [Reactive] public partial bool NoteMode { get; set; }
         [Reactive] public partial string SearchWord { get; set; } = "";
         public string Watermark { get => ThemeManager.GetString(NoteMode ? "pianoroll.menu.searchnote" : "pianoroll.menu.searchnote.searchalias"); }
@@ -48,6 +48,7 @@ namespace OpenUtau.App.ViewModels {
                         break;
                 }
             });
+            DocManager.Inst.AddSubscriber(this);
         }
 
         bool IsMatch(string lyric) {
@@ -129,6 +130,15 @@ namespace OpenUtau.App.ViewModels {
                 ResultCount = $"{selection + 1}/{Count}";
             }else{
                 ResultCount = $"{Count}";
+            }
+        }
+
+        public void OnNext(UCommand cmd, bool isUndo) {
+            if (cmd is UNotification notif) {
+                if (cmd is LoadPartNotification) {
+                    Search();
+                    Next();
+                }
             }
         }
     }

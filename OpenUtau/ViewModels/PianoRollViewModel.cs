@@ -80,8 +80,7 @@ namespace OpenUtau.App.ViewModels {
         public EditTool EditTool { get; set; } = Preferences.Default.EditTool;
         [Reactive] public partial int ToolIndex { get; set; } = Preferences.Default.EditTool.BaseTool;
         [Reactive] public partial int PenToolIndex { get; set; } = Preferences.Default.EditTool.PenToolVariation;
-        [Reactive] public partial int DrawPitchToolIndex { get; set; } = Preferences.Default.EditTool.DrawPitchToolVariation;
-        [Reactive] public partial int DrawLinePitchToolIndex { get; set; } = Preferences.Default.EditTool.DrawLinePitchToolVariation;
+        [Reactive] public partial bool PitchOverwrite { get; set; } = Preferences.Default.EditTool.OverwritePitch;
 
         public ObservableCollectionExtended<MenuItemViewModel> LegacyPlugins { get; private set; }
             = new ObservableCollectionExtended<MenuItemViewModel>();
@@ -126,10 +125,8 @@ namespace OpenUtau.App.ViewModels {
                 .Subscribe(index => EditTool.BaseTool = index);
             this.WhenAnyValue(vm => vm.PenToolIndex)
                 .Subscribe(index => EditTool.PenToolVariation = index);
-            this.WhenAnyValue(vm => vm.DrawPitchToolIndex)
-                .Subscribe(index => EditTool.DrawPitchToolVariation = index);
-            this.WhenAnyValue(vm => vm.DrawLinePitchToolIndex)
-                .Subscribe(index => EditTool.DrawLinePitchToolVariation = index);
+            this.WhenAnyValue(vm => vm.PitchOverwrite)
+                .Subscribe(val => { EditTool.OverwritePitch = val; Preferences.Default.EditTool.OverwritePitch = val; Preferences.Save(); });
 
             NoteDeleteCommand = ReactiveCommand.Create<NoteHitInfo>(info => {
                 NotesViewModel.DeleteSelectedNotes();
