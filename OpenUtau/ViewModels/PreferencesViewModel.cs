@@ -129,6 +129,7 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial bool RememberMid { get; set; }
         [Reactive] public partial bool RememberUst { get; set; }
         [Reactive] public partial bool RememberVsqx { get; set; }
+        [Reactive] public partial bool Wayland { get; set; }
         public string WinePath => Preferences.Default.WinePath;
 
         public PreferencesViewModel() {
@@ -194,6 +195,7 @@ namespace OpenUtau.App.ViewModels {
             RememberUst = Preferences.Default.RememberUst;
             RememberVsqx = Preferences.Default.RememberVsqx;
             ClearCacheOnQuit = Preferences.Default.ClearCacheOnQuit;
+            Wayland = Preferences.Default.UseWayland;
 
             MessageBus.Current.Listen<ThemeEditorStateChangedEvent>()
                 .Subscribe(_ => this.RaisePropertyChanged(nameof(IsThemeEditorOpen)));
@@ -241,6 +243,11 @@ namespace OpenUtau.App.ViewModels {
             this.WhenAnyValue(vm => vm.InstallToAdditionalSingersPath)
                 .Subscribe(additionalSingersPath => {
                     Preferences.Default.InstallToAdditionalSingersPath = additionalSingersPath;
+                    Preferences.Save();
+                });
+            this.WhenAnyValue(vm => vm.Wayland)
+                .Subscribe(additionalSingersPath => {
+                    Preferences.Default.UseWayland = Wayland;
                     Preferences.Save();
                 });
             this.WhenAnyValue(vm => vm.LoadDeepFolders)

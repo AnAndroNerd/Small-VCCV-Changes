@@ -77,18 +77,19 @@ namespace OpenUtau.App {
                 ];
             }
 
-            return AppBuilder.Configure<App>()
+            var builder = AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .LogToTrace()
                 .UseReactiveUI(_ => { })
-                .With(fontOptions)
-                .With(new X11PlatformOptions {
-                    RenderingMode = new[] { X11RenderingMode.Glx },
-                    EnableIme = true
-                })
-                .With(new Win32PlatformOptions {
-                    RenderingMode = new[] { Win32RenderingMode.Wgl }
-                });
+                .With(fontOptions);
+            
+            if (OS.IsLinux() && Core.Util.Preferences.Default.UseWayland) {
+                builder.UseWayland();
+            }
+            
+            return builder.With(new X11PlatformOptions {
+                EnableIme = true
+            });
         }
 
         public static void Run(string[] args)

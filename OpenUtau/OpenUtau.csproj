@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Wayland" Version="12.1.0" />
     <PackageReference Include="Dotnet.Bundle" Version="0.9.13" />
     <PackageReference Include="DynamicData" Version="9.4.33" />
     <PackageReference Include="NetSparkleUpdater.SparkleUpdater" Version="2.2.3" />
