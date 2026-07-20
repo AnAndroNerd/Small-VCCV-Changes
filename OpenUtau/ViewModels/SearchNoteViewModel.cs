@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -13,7 +13,7 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial string SearchWord { get; set; } = "";
         public string Watermark { get => ThemeManager.GetString(NoteMode ? "pianoroll.menu.searchnote" : "pianoroll.menu.searchnote.searchalias"); }
         [Reactive] public partial int Count { get; private set; }
-        public ReactiveCommand<string, Unit> SelectCommand { get; }
+        public ReactiveCommand<string, RxVoid> SelectCommand { get; }
 
         NotesViewModel notesViewModel { get; }
         List<UNote> notes = new List<UNote>();

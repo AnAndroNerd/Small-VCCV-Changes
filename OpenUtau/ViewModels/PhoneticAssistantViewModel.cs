@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using OpenUtau.Core.G2p;
 using OpenUtau.Core.Util;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {

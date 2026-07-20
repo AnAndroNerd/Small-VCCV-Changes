@@ -6,6 +6,7 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Input;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 
 namespace OpenUtau.Controls{
     public class IntEditor : TextBox

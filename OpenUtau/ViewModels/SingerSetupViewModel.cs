@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using OpenUtau.Classic;
 using OpenUtau.Core;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 using SharpCompress.Archives;
 using SharpCompress.Common;

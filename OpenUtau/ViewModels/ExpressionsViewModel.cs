@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
 using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 using ReactiveUI;
+using ReactiveUI.Primitives;
+using static ReactiveUI.Primitives.SubscribeExtensions;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -136,7 +136,7 @@ namespace OpenUtau.App.ViewModels {
         public bool IsSelected => expression != null;
 
         public IReadOnlyList<MenuItemViewModel>? AddMenuItems { get; set; }
-        public ReactiveCommand<ExpressionBuilder, Unit> AddItemCommand { get; }
+        public ReactiveCommand<ExpressionBuilder, RxVoid> AddItemCommand { get; }
 
         private ReadOnlyObservableCollection<ExpressionBuilder> expressions;
         private ExpressionBuilder? expression;

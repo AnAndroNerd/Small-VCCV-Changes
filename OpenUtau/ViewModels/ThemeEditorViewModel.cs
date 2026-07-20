@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using OpenUtau.Core;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 using Serilog;
 using OpenUtau.Colors;

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,9 +16,10 @@ using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 using OpenUtau.ViewModels;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 using Serilog;
-using SharpCompress;
+using static ReactiveUI.Primitives.SubscribeExtensions;
 
 namespace OpenUtau.App.ViewModels {
     public class NotesRefreshEvent { }
@@ -89,8 +88,8 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial List<MenuItemViewModel> SnapDivs { get; set; }
         [Reactive] public partial List<MenuItemViewModel> Keys { get; set; }
 
-        public ReactiveCommand<int, Unit> SetSnapUnitCommand { get; set; }
-        public ReactiveCommand<int, Unit> SetKeyCommand { get; set; }
+        public ReactiveCommand<int, RxVoid> SetSnapUnitCommand { get; set; }
+        public ReactiveCommand<int, RxVoid> SetKeyCommand { get; set; }
 
         // See the comments on TracksViewModel.playPosXToTickOffset
         private double playPosXToTickOffset => Bounds.Width != 0 ? ViewportTicks / Bounds.Width : 0;

@@ -11,6 +11,7 @@ using OpenUtau.Core;
 using OpenUtau.Core.Util;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using ReactiveUI.Primitives;
 using ReactiveUI.Avalonia;
 using OpenUtau.Core.Render;
 using Serilog;
@@ -203,7 +204,7 @@ namespace OpenUtau.App.ViewModels {
                     Preferences.Save();
                 });
             this.WhenAnyValue(vm => vm.AudioOutputDevice)
-                .WhereNotNull()
+                .OfType<AudioOutputDevice>()
                 .SubscribeOn(AvaloniaScheduler.Instance)
                 .Subscribe(device => {
                     if (UseSystemDefaultDevice) {

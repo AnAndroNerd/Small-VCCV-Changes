@@ -6,6 +6,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 
 namespace OpenUtau.Controls{
     public class FloatEditor : TextBox

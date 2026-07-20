@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using OpenUtau.Core.SignalChain.Effects;
 using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -67,9 +66,9 @@ namespace OpenUtau.App.ViewModels {
         public bool CanDeleteSelectedPreset => canDeleteSelectedPreset.Value;
         private readonly ObservableAsPropertyHelper<bool> canDeleteSelectedPreset;
 
-        public ReactiveCommand<Unit, Unit> ApplyRecommendedCommand { get; }
-        public ReactiveCommand<Unit, Unit> SaveUserPresetCommand { get; }
-        public ReactiveCommand<Unit, Unit> DeleteUserPresetCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> ApplyRecommendedCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> SaveUserPresetCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> DeleteUserPresetCommand { get; }
 
         public Func<Task<string?>>? AskForName;
 

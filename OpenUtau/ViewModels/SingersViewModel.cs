@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +15,7 @@ using OpenUtau.Classic;
 using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 using Serilog;
 
@@ -45,11 +45,11 @@ namespace OpenUtau.App.ViewModels {
             = new ObservableCollectionExtended<USubbank>();
         private readonly ObservableCollectionExtended<UOto> otos
             = new ObservableCollectionExtended<UOto>();
-        private readonly ReactiveCommand<Encoding, Unit> setEncodingCommand;
+        private readonly ReactiveCommand<Encoding, RxVoid> setEncodingCommand;
         private List<MenuItemViewModel> setEncodingMenuItems;
-        private readonly ReactiveCommand<string, Unit> setSingerTypeCommand;
+        private readonly ReactiveCommand<string, RxVoid> setSingerTypeCommand;
         private List<MenuItemViewModel> setSingerTypeMenuItems;
-        private readonly ReactiveCommand<Api.PhonemizerFactory, Unit> setDefaultPhonemizerCommand;
+        private readonly ReactiveCommand<Api.PhonemizerFactory, RxVoid> setDefaultPhonemizerCommand;
         private List<MenuItemViewModel> setDefaultPhonemizerMenuItems;
 
         public SingersViewModel() {
@@ -63,7 +63,7 @@ namespace OpenUtau.App.ViewModels {
                 Singer = Singers.FirstOrDefault();
             }
             this.WhenAnyValue(vm => vm.Singer)
-                .WhereNotNull()
+                .OfType<USinger>()
                 .Subscribe(singer => {
                     if (LoadingWindow.IsLoading()) {
                         try {

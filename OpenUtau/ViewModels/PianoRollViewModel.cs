@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using Avalonia.Input;
 using Avalonia.Threading;
 using DynamicData.Binding;
@@ -12,6 +11,7 @@ using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 using OpenUtau.ViewModels;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -103,19 +103,19 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial string UndoText { get; set; } = ThemeManager.GetString("menu.edit.undo");
         [Reactive] public partial string RedoText { get; set; } = ThemeManager.GetString("menu.edit.redo");
 
-        public ReactiveCommand<NoteHitInfo, Unit> NoteDeleteCommand { get; set; }
-        public ReactiveCommand<NoteHitInfo, Unit> NoteCopyCommand { get; set; }
-        public ReactiveCommand<NoteHitInfo, Unit> ClearPhraseCacheCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitEaseInOutCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitLinearCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitEaseInCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitEaseOutCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitSplineCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitSnapCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitDelCommand { get; set; }
-        public ReactiveCommand<PitchPointHitInfo, Unit> PitAddCommand { get; set; }
+        public ReactiveCommand<NoteHitInfo, RxVoid> NoteDeleteCommand { get; set; }
+        public ReactiveCommand<NoteHitInfo, RxVoid> NoteCopyCommand { get; set; }
+        public ReactiveCommand<NoteHitInfo, RxVoid> ClearPhraseCacheCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitEaseInOutCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitLinearCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitEaseInCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitEaseOutCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitSplineCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitSnapCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitDelCommand { get; set; }
+        public ReactiveCommand<PitchPointHitInfo, RxVoid> PitAddCommand { get; set; }
 
-        private ReactiveCommand<Classic.Plugin, Unit> legacyPluginCommand;
+        private ReactiveCommand<Classic.Plugin, RxVoid> legacyPluginCommand;
 
         public PianoRollViewModel() {
             NotesViewModel = new NotesViewModel();

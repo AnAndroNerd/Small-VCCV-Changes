@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using DynamicData.Binding;
@@ -11,6 +10,7 @@ using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -18,13 +18,13 @@ namespace OpenUtau.App.ViewModels {
         public UPart? Part { get; set; }
         public bool IsVoicePart => Part is UVoicePart;
         public bool IsWavePart => Part is UWavePart;
-        public ReactiveCommand<UPart, Unit>? PartDeleteCommand { get; set; }
-        public ReactiveCommand<UPart, Unit>? PartRenameCommand { get; set; }
-        public ReactiveCommand<UPart, Unit>? PartGotoFileCommand { get; set; }
-        public ReactiveCommand<UPart, Unit>? PartReplaceAudioCommand { get; set; }
-        public ReactiveCommand<UPart, Unit>? PartTranscribeCommand { get; set; }
-        public ReactiveCommand<UPart, Unit>? PartMergeCommand { get; set; }
-        public ReactiveCommand<UPart, Unit>? PartSplitCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartDeleteCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartRenameCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartGotoFileCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartReplaceAudioCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartTranscribeCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartMergeCommand { get; set; }
+        public ReactiveCommand<UPart, RxVoid>? PartSplitCommand { get; set; }
         public IEnumerable<MenuItemViewModel> PartApplyPitchMenuItems { get; set; } = new List<MenuItemViewModel>();
     }
 
@@ -63,8 +63,8 @@ namespace OpenUtau.App.ViewModels {
 
         [Reactive] public partial PlaybackViewModel PlaybackViewModel { get; set; }
         [Reactive] public partial TracksViewModel TracksViewModel { get; set; }
-        [Reactive] public partial ReactiveCommand<string, Unit>? OpenRecentCommand { get; private set; }
-        [Reactive] public partial ReactiveCommand<string, Unit>? OpenTemplateCommand { get; private set; }
+        [Reactive] public partial ReactiveCommand<string, RxVoid>? OpenRecentCommand { get; private set; }
+        [Reactive] public partial ReactiveCommand<string, RxVoid>? OpenTemplateCommand { get; private set; }
         public ObservableCollectionExtended<MenuItemViewModel> OpenRecentMenuItems => openRecentMenuItems;
         public ObservableCollectionExtended<MenuItemViewModel> OpenTemplatesMenuItems => openTemplatesMenuItems;
         public ObservableCollectionExtended<MenuItemViewModel> TimelineContextMenuItems { get; }
@@ -78,11 +78,11 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial bool ShowPianoRoll { get; set; }
         [Reactive] public partial double PianoRollMaxHeight { get; set; }
         [Reactive] public partial double PianoRollMinHeight { get; set; }
-        public ReactiveCommand<UPart, Unit> PartDeleteCommand { get; set; }
-        public ReactiveCommand<int, Unit>? AddTempoChangeCmd { get; set; }
-        public ReactiveCommand<int, Unit>? DelTempoChangeCmd { get; set; }
-        public ReactiveCommand<int, Unit>? AddTimeSigChangeCmd { get; set; }
-        public ReactiveCommand<int, Unit>? DelTimeSigChangeCmd { get; set; }
+        public ReactiveCommand<UPart, RxVoid> PartDeleteCommand { get; set; }
+        public ReactiveCommand<int, RxVoid>? AddTempoChangeCmd { get; set; }
+        public ReactiveCommand<int, RxVoid>? DelTempoChangeCmd { get; set; }
+        public ReactiveCommand<int, RxVoid>? AddTimeSigChangeCmd { get; set; }
+        public ReactiveCommand<int, RxVoid>? DelTimeSigChangeCmd { get; set; }
         [Reactive] public partial bool CanUndo { get; set; } = false;
         [Reactive] public partial bool CanRedo { get; set; } = false;
         [Reactive] public partial string UndoText { get; set; } = ThemeManager.GetString("menu.edit.undo");

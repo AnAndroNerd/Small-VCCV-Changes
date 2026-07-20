@@ -5,6 +5,7 @@ using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -146,7 +147,7 @@ namespace OpenUtau.App.ViewModels {
                         NotePresets.Save();
                     });
             this.WhenAnyValue(vm => vm.ApplyPortamentoPreset)
-                .WhereNotNull()
+                .OfType<NotePresets.PortamentoPreset>()
                 .Subscribe(portamentoPreset => {
                     if (portamentoPreset != null) {
                         CurrentPortamentoLength = portamentoPreset.PortamentoLength;
@@ -157,7 +158,7 @@ namespace OpenUtau.App.ViewModels {
                     }
                 });
             this.WhenAnyValue(vm => vm.ApplyVibratoPreset)
-                .WhereNotNull()
+                .OfType<NotePresets.VibratoPreset>()
                 .Subscribe(vibratoPreset => {
                     if (vibratoPreset != null) {
                         CurrentVibratoLength = Math.Max(0, Math.Min(100, vibratoPreset.VibratoLength));

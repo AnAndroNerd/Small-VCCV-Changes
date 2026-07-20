@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenUtau.Core;
 using ReactiveUI.SourceGenerators;
-using System.Reactive;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 
 namespace OpenUtau.App.ViewModels {
     public partial class PackageRowViewModel : ViewModelBase {
@@ -32,8 +32,7 @@ namespace OpenUtau.App.ViewModels {
             Developer = (s.developers != null && s.developers.Length > 0) ? string.Join(", ", s.developers) : string.Empty;
             Version = (s.versions != null && s.versions.Length > 0) ? PackageManager.GetLatestVersionString(s.versions) : string.Empty;
 
-            this.WhenAnyValue(x => x.IsInstalled, x => x.InstalledVersion)
-                .Subscribe(_ => {
+            SubscribeExtensions.Subscribe(this.WhenAnyValue(x => x.IsInstalled, x => x.InstalledVersion), _ => {
                     this.RaisePropertyChanged(nameof(IsUpToDate));
                     this.RaisePropertyChanged(nameof(CanInstallOrUpdate));
                     this.RaisePropertyChanged(nameof(PrimaryActionLabel));
@@ -65,9 +64,9 @@ namespace OpenUtau.App.ViewModels {
     public partial class PackageManagerViewModel : ViewModelBase {
         public ObservableCollection<PackageRowViewModel> Available { get; } = new ObservableCollection<PackageRowViewModel>();
         [Reactive] public partial string Status { get; set; } = string.Empty;
-        public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
-        public ReactiveCommand<PackageRowViewModel, Unit> InstallCommand { get; }
-        public ReactiveCommand<PackageRowViewModel, Unit> UninstallCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> RefreshCommand { get; }
+        public ReactiveCommand<PackageRowViewModel, RxVoid> InstallCommand { get; }
+        public ReactiveCommand<PackageRowViewModel, RxVoid> UninstallCommand { get; }
 
         public PackageManagerViewModel() {
             RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);

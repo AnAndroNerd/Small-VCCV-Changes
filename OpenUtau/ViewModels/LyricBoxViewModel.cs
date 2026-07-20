@@ -6,6 +6,7 @@ using DynamicData.Binding;
 using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
 namespace OpenUtau.App.ViewModels {
@@ -32,7 +33,7 @@ namespace OpenUtau.App.ViewModels {
             this.WhenAnyValue(x => x.Text, x => x.IsVisible)
                 .Subscribe(_ => UpdateSuggestion());
             this.WhenAnyValue(x => x.SelectedSuggestion)
-                .WhereNotNull()
+                .OfType<SuggestionItem>()
                 .Subscribe(ss => Serilog.Log.Information(ss.Alias));
 
             isAliasBox = this.WhenAnyValue(x => x.NoteOrPhoneme)
