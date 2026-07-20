@@ -47,6 +47,7 @@ namespace OpenUtau.App.ViewModels {
             Grapheme = string.Empty;
             Phonemes = string.Empty;
             this.WhenAnyValue(x => x.G2p)
+                .OfType<G2pOption>()
                 .Subscribe(option => {
                     g2p = null;
                     if (option != null) {
@@ -57,6 +58,7 @@ namespace OpenUtau.App.ViewModels {
                     }
                 });
             this.WhenAnyValue(x => x.Grapheme)
+                .OfType<String>()
                 .Subscribe(_ => Refresh());
         }
 

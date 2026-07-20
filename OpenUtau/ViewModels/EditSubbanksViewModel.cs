@@ -75,6 +75,7 @@ namespace OpenUtau.App.ViewModels {
         public EditSubbanksViewModel() {
             Colors = new ObservableCollectionExtended<VoiceColor>();
             this.WhenAnyValue(x => x.SelectedColor)
+                .OfType<VoiceColor>()
                 .Subscribe(color => {
                     Rows = color?.Rows;
                     IsEditableColor = color != null && !string.IsNullOrEmpty(color.Name);

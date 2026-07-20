@@ -24,6 +24,7 @@ namespace OpenUtau.Controls{
         {
             Text = "0";
             this.WhenAnyValue(x => x.Text)
+                .OfType<String>()
                 .Subscribe((text => { 
                     OnTextChanged(text);
                 }));

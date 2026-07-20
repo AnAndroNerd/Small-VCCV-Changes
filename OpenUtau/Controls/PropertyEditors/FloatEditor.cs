@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using OpenUtau.App.ViewModels;
 using ReactiveUI;
 using ReactiveUI.Primitives;
 
@@ -24,6 +25,7 @@ namespace OpenUtau.Controls{
         {
             Text = "0";
             this.WhenAnyValue(x => x.Text)
+                .OfType<String>()
                 .Subscribe((text => { 
                     OnTextChanged(text);
                 }));

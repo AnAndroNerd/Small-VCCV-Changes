@@ -130,6 +130,7 @@ namespace OpenUtau.App.Controls {
             MessageBus.Current.Listen<PartRefreshEvent>()
                 .Subscribe(_ => RefreshGhostNotes());
             this.WhenAnyValue(x => x.Part)
+                .OfType<UVoicePart>()
                 .Subscribe(_ => RefreshGhostNotes());
         }
 

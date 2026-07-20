@@ -62,6 +62,7 @@ namespace OpenUtau.App.ViewModels {
             VibratoPresets = NotePresets.Default.VibratoPresets;
 
             this.WhenAnyValue(vm => vm.DefaultLyric)
+                .OfType<String>()
                     .Subscribe(defaultLyric => {
                         if(defaultLyric == null){
                             return;
@@ -70,6 +71,7 @@ namespace OpenUtau.App.ViewModels {
                         NotePresets.Save();
                     });
             this.WhenAnyValue(vm => vm.SplittedLyric)
+                .OfType<String>()
                     .Subscribe(splittedLyric => {
                         if(splittedLyric == null){
                             return;

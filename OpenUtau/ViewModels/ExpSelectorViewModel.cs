@@ -40,6 +40,7 @@ namespace OpenUtau.App.ViewModels {
                 .Select(descriptor => descriptor == null ? string.Empty : descriptor.abbr.ToUpperInvariant())
                 .ToProperty(this, x => x.Header, out header);
             this.WhenAnyValue(x => x.Descriptor)
+                .OfType<UExpressionDescriptor>()
                 .Subscribe(SelectionChanged);
             this.WhenAnyValue(x => x.Index, x => x.Descriptors)
                 .Subscribe(tuple => {

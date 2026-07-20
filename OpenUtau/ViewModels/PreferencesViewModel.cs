@@ -254,12 +254,14 @@ namespace OpenUtau.App.ViewModels {
                     Preferences.Save();
                 });
             this.WhenAnyValue(vm => vm.Language)
+                .OfType<CultureInfo>()
                 .Subscribe(lang => {
                     Preferences.Default.Language = lang?.Name ?? string.Empty;
                     Preferences.Save();
                     App.SetLanguage(Preferences.Default.Language);
                 });
             this.WhenAnyValue(vm => vm.SortingOrder)
+                .OfType<CultureInfo>()
                 .Subscribe(so => {
                     Preferences.Default.SortingOrder = so?.Name ?? null;
                     Preferences.Save();
@@ -309,6 +311,7 @@ namespace OpenUtau.App.ViewModels {
                     Preferences.Save();
                 });
             this.WhenAnyValue(vm => vm.LyricsHelper)
+                .OfType<LyricsHelperOption>()
                 .Subscribe(option => {
                     ActiveLyricsHelper.Inst.Set(option?.klass);
                     Preferences.Default.LyricHelper = option?.klass?.Name ?? string.Empty;

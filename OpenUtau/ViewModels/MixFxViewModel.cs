@@ -125,10 +125,10 @@ namespace OpenUtau.App.ViewModels {
             }
 
             // Picking a preset reloads its parameters into the sliders.
-            this.WhenAnyValue(x => x.SelectedEq).Subscribe(opt => { if (opt != null) LoadEqPreset(opt.Key); });
-            this.WhenAnyValue(x => x.SelectedComp).Subscribe(opt => { if (opt != null) LoadCompPreset(opt.Key); });
-            this.WhenAnyValue(x => x.SelectedReverb).Subscribe(opt => { if (opt != null) LoadReverbPreset(opt.Key); });
-            this.WhenAnyValue(x => x.SelectedUserPreset).Subscribe(p => { if (p != null) LoadUserPreset(p); });
+            this.WhenAnyValue(x => x.SelectedEq).OfType<PresetOption>().Subscribe(opt => { if (opt != null) LoadEqPreset(opt.Key); });
+            this.WhenAnyValue(x => x.SelectedComp).OfType<PresetOption>().Subscribe(opt => { if (opt != null) LoadCompPreset(opt.Key); });
+            this.WhenAnyValue(x => x.SelectedReverb).OfType<PresetOption>().Subscribe(opt => { if (opt != null) LoadReverbPreset(opt.Key); });
+            this.WhenAnyValue(x => x.SelectedUserPreset).OfType<Preferences.MixFxUserPreset>().Subscribe(p => { if (p != null) LoadUserPreset(p); });
 
             this.WhenAnyValue(x => x.SelectedUserPreset)
                 .Select(p => p != null && !ReferenceEquals(p, defaultPreset))

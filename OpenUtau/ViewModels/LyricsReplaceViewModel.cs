@@ -45,6 +45,7 @@ namespace OpenUtau.App.ViewModels {
                     }
                 });
             this.WhenValueChanged(x => SelectedPreset)
+                .OfType<ReplacePreset>()
                 .Subscribe(p => {
                     if (SelectedPreset != null) {
                         OldValue = SelectedPreset.OldValue;

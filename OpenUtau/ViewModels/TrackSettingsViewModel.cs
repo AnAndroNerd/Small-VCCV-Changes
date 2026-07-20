@@ -52,6 +52,7 @@ namespace OpenUtau.App.ViewModels {
                 IsNotClassic = Renderers.CLASSIC != renderer;
             }
             this.WhenAnyValue(x => x.Resampler)
+                .OfType<IResampler>()
                 .Subscribe(resampler => {
                     resampler?.CheckPermissions();
                     var wavtool = Wavtool;
@@ -64,6 +65,7 @@ namespace OpenUtau.App.ViewModels {
                     }
                 });
             this.WhenAnyValue(x => x.Wavtool)
+                .OfType<IWavtool>()
                 .Subscribe(wavtool => {
                     wavtool?.CheckPermissions();
                 });
