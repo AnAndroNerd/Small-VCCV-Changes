@@ -74,6 +74,15 @@ jobs:
         run: dotnet msbuild OpenUtau -t:BundleApp -p:Configuration=Release -p:RuntimeIdentifier=${{ matrix.arch.rid }} -p:UseAppHost=true -p:SelfContained=true -p:OutputPath=../bin/${{ matrix.arch.name }}/
         if: ${{ matrix.arch.os == 'osx' }}
       
+      - name: Add Liquid Glass icon (macOS)
+        run: |
+          chmod +x .github/scripts/add-liquid-glass-icon.sh
+          .github/scripts/add-liquid-glass-icon.sh \
+            bin/${{ matrix.arch.name }}/publish/OpenUtau.app \
+            OpenUtau/Assets/OpenUtau.icon \
+            OpenUtau
+        if: ${{ matrix.arch.os == 'osx' }}
+      
       - name: Write release channel info
         run: "@{Beta=$${{ inputs.beta }}} | ConvertTo-Json > bin/${{ matrix.arch.name }}/prefs-default.json"
         shell: pwsh
