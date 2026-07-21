@@ -76,6 +76,7 @@ jobs:
       
       - name: Add Liquid Glass icon (macOS)
         run: |
+          sudo xcode-select -s /Applications/Xcode_26.2.app
           chmod +x .github/scripts/add-liquid-glass-icon.sh
           .github/scripts/add-liquid-glass-icon.sh \
             bin/${{ matrix.arch.name }}/publish/OpenUtau.app \
