@@ -566,7 +566,6 @@ namespace OpenUtau.App.Views {
                     });
 
                     dialog = new SingersDialog() { DataContext = vm };
-                    dialog.Show();
                 }
                 if (dialog.Position.Y < 0) {
                     dialog.Position = dialog.Position.WithY(0);
@@ -577,8 +576,16 @@ namespace OpenUtau.App.Views {
                 LoadingWindow.EndLoading();
             }
             if (dialog != null) {
-                dialog.Activate();
+                ShowToolWindow(dialog);
             }
+        }
+
+        private static void ShowToolWindow(Window window) {
+            if (window.WindowState == WindowState.Minimized) {
+                window.WindowState = WindowState.Normal;
+            }
+            window.Show();
+            window.Activate();
         }
 
         async void OnMenuInstallSinger(object sender, RoutedEventArgs args) {
@@ -614,9 +621,20 @@ namespace OpenUtau.App.Views {
 
         void OnMenuPackageManager(object sender, RoutedEventArgs args) {
             try {
-                var dialog = new PackageManagerDialog() { DataContext = new PackageManagerViewModel() };
-                dialog.Show();
+                var desktop = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+                if (desktop == null) {
+                    return;
+                }
+                var dialog = desktop.Windows.FirstOrDefault(w => w is PackageManagerDialog) as PackageManagerDialog;
+                if (dialog == null) {
+                    dialog = new PackageManagerDialog() { DataContext = new PackageManagerViewModel() };
+                }
                 if (dialog.Position.Y < 0) dialog.Position = dialog.Position.WithY(0);
+                if (dialog.WindowState == WindowState.Minimized) {
+                    dialog.WindowState = WindowState.Normal;
+                }
+                dialog.Show();
+                dialog.Activate();
             } catch (Exception e) {
                 DocManager.Inst.ExecuteCmd(new ErrorMessageNotification(e));
             }
@@ -628,7 +646,7 @@ namespace OpenUtau.App.Views {
                 : new[] { FilePicker.EXE, FilePicker.UnixExecutable };
 
             var file = await FilePicker.OpenFile(
-                this, "menu.tools.dependency.install", filter);
+                this, "menu.tools.wavtoolresampler.install", filter);
             if (file == null) {
                 return;
             }
@@ -686,7 +704,7 @@ namespace OpenUtau.App.Views {
             if (window == null) {
                 window = new DebugWindow();
             }
-            window.Show();
+            ShowToolWindow(window);
         }
 
         void OnMenuPhoneticAssistant(object sender, RoutedEventArgs args) {
@@ -698,7 +716,7 @@ namespace OpenUtau.App.Views {
             if (window == null) {
                 window = new PhoneticAssistant();
             }
-            window.Show();
+            ShowToolWindow(window);
         }
 
         void OnMenuCheckUpdate(object sender, RoutedEventArgs args) {
@@ -1286,21 +1304,18 @@ namespace OpenUtau.App.Views {
                 return;
             }
             if (Preferences.Default.DetachPianoRoll) {
-                pianoRollWindow?.ForceClose();
-                pianoRollWindow = null;
-                PianoRollContainer.Content = pianoRoll;
-                viewModel.ShowPianoRoll = true;
-                Preferences.Default.DetachPianoRoll = false;
-            } else {
                 PianoRollContainer.Content = null;
                 viewModel.ShowPianoRoll = false;
                 if (pianoRollWindow == null) {
                     pianoRollWindow = new(pianoRoll);
                     pianoRollWindow.Show();
                 }
-                Preferences.Default.DetachPianoRoll = true;
+            } else {
+                pianoRollWindow?.ForceClose();
+                pianoRollWindow = null;
+                PianoRollContainer.Content = pianoRoll;
+                viewModel.ShowPianoRoll = true;
             }
-            Preferences.Save();
         }
 
         public void MainPagePointerWheelChanged(object sender, PointerWheelEventArgs args) {

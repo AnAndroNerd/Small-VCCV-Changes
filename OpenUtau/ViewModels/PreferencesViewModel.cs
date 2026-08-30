@@ -95,6 +95,10 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial GpuInfo OnnxGpu { get; set; }
         [Reactive] public partial bool ShowOnnxGpu { get; set; }
 
+        // GAME backend (onnx / ggml)
+        public List<string> GameBackendOptions { get; } = new() { "ONNX", "GGML" };
+        [Reactive] public string GameBackend { get; set; }
+
         // Appearance
         [Reactive] public partial string ThemeName { get; set; }
         [Reactive] public partial int DegreeStyle { get; set; }
@@ -102,6 +106,7 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial bool ShowPortrait { get; set; }
         [Reactive] public partial bool ShowIcon { get; set; }
         [Reactive] public partial bool ShowGhostNotes { get; set; }
+        [Reactive] public partial bool DetachPianoRoll { get; set; }
         [Reactive] public partial bool ThemeEditable { get; set; }
         public List<string> ThemeItems => ThemeManager.GetAvailableThemes();
         public bool IsThemeEditorOpen => Views.ThemeEditorWindow.IsOpen;
@@ -173,6 +178,12 @@ namespace OpenUtau.App.ViewModels {
             OnnxGpuOptions = Onnx.getGpuInfo();
             OnnxGpu = OnnxGpuOptions.FirstOrDefault(x => x.deviceId == Preferences.Default.OnnxGpu, OnnxGpuOptions[0]);
             ShowOnnxGpu = OnnxRunner == "DirectML";
+            // GAME backend: ONNX is the default, GGML is available when installed.
+            // The options list always includes both so the ComboBox UX is stable.
+            GameBackend = Preferences.Default.GameBackend switch {
+                "ggml" => "GGML",
+                _ => "ONNX",  // default / empty / unrecognized all map to ONNX
+            };
             DiffSingerDepth = Preferences.Default.DiffSingerDepth * 100;
             DiffSingerSteps = Preferences.Default.DiffSingerSteps;
             DiffSingerStepsVariance = Preferences.Default.DiffSingerStepsVariance;
@@ -187,6 +198,7 @@ namespace OpenUtau.App.ViewModels {
             ShowPortrait = Preferences.Default.ShowPortrait;
             ShowIcon = Preferences.Default.ShowIcon;
             ShowGhostNotes = Preferences.Default.ShowGhostNotes;
+            DetachPianoRoll = Preferences.Default.DetachPianoRoll;
             Beta = Preferences.Default.Beta;
             LyricsHelper = LyricsHelpers.FirstOrDefault(option => option.klass.Equals(ActiveLyricsHelper.Inst.GetPreferred()));
             LyricsHelperBrackets = Preferences.Default.LyricsHelperBrackets;
@@ -312,6 +324,12 @@ namespace OpenUtau.App.ViewModels {
                     Preferences.Save();
                     MessageBus.Current.SendMessage(new PianorollRefreshEvent("Part"));
                 });
+            this.WhenAnyValue(vm => vm.DetachPianoRoll)
+                .Subscribe(detachPianoRoll => {
+                    Preferences.Default.DetachPianoRoll = detachPianoRoll;
+                    Preferences.Save();
+                    MessageBus.Current.SendMessage(new PianorollRefreshEvent("Attachment"));
+                });
             this.WhenAnyValue(vm => vm.Beta)
                 .Subscribe(beta => {
                     Preferences.Default.Beta = beta;
@@ -354,6 +372,11 @@ namespace OpenUtau.App.ViewModels {
             this.WhenAnyValue(vm => vm.OnnxGpu)
                 .Subscribe(index => {
                     Preferences.Default.OnnxGpu = index.deviceId;
+                    Preferences.Save();
+                });
+            this.WhenAnyValue(vm => vm.GameBackend)
+                .Subscribe(index => {
+                    Preferences.Default.GameBackend = index == "GGML" ? "ggml" : "onnx";
                     Preferences.Save();
                 });
             this.WhenAnyValue(vm => vm.RememberMid)
