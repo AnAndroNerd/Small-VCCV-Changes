@@ -37,6 +37,11 @@ namespace OpenUtau.Plugins {
             var project = new UProject();
             Ustx.AddDefaultExpressions(project);
             var track = project.tracks[0];
+            project.expressions.TryGetValue(Ustx.CLR, out var colorDescriptor);
+            track.VoiceColorExp = colorDescriptor.Clone();
+            var voiceColors = singer.Subbanks.Select(subbank => subbank.Color).ToHashSet();
+            track.VoiceColorExp.options = voiceColors.OrderBy(c => c).ToArray();
+            track.VoiceColorExp.max = track.VoiceColorExp.options.Length - 1;
 
             var part = new UVoicePart { trackNo = 0 };
             int pos = 240;
