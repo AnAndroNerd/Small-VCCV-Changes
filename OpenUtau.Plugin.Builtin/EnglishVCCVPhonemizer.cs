@@ -351,7 +351,7 @@ namespace OpenUtau.Plugin.Builtin {
                     case "VCC": case "VCC-": case "codaCC": case "C C":
                     case "VC C":
                         if (GetNoteForPhoneme(phoneme, notes).lyric == "+" ||
-                            GetNoteForPhoneme(phoneme, notes).lyric == "+") {
+                            GetNoteForPhoneme(phoneme, notes).lyric == "+~") {
                             vel = noteVel;
                             break;
                         }
