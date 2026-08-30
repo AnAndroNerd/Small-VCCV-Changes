@@ -146,7 +146,7 @@
             </ReferencePath>
         </ItemGroup>
     </Target>
-    </PropertyGroup>
+    <PropertyGroup>
         <DefineConstants Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(DefineConstants);MACOS</DefineConstants>
     </PropertyGroup>
 </Project>

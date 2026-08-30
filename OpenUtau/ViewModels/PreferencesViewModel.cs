@@ -97,7 +97,7 @@ namespace OpenUtau.App.ViewModels {
 
         // GAME backend (onnx / ggml)
         public List<string> GameBackendOptions { get; } = new() { "ONNX", "GGML" };
-        [Reactive] public string GameBackend { get; set; }
+        [Reactive] public partial string GameBackend { get; set; }
 
         // Appearance
         [Reactive] public partial string ThemeName { get; set; }
