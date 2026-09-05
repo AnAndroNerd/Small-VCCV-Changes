@@ -796,7 +796,10 @@ namespace OpenUtau.Plugin.Builtin {
 
                                 if (phonemes.Count == 0) {
                                     parsingVCC = $"{prevV}{cc[0]}-";
-                                    if (cc.Length - lastCPrevWord - 1 > 0 && !dontParse && !HasOto($"{cc[0]} {cc[1]}", syllable.vowelTone)) {
+                                    if (cc.Length - lastCPrevWord - 1 > 0 && 
+                                        !dontParse && 
+                                        !HasOto($"{cc[0]} {cc[1]}", syllable.vowelTone)
+                                        && lastCPrevWord == 0) {
                                         parsingVCC = $"{prevV}{cc[0]}";
                                     }
                                     if (!HasOto(parsingVCC, syllable.vowelTone)) {
