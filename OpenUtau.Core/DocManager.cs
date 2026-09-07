@@ -234,6 +234,7 @@ namespace OpenUtau.Core {
                     rangeStartTick = 0;
                     rangeEndTick = 0;
                     SingerManager.Inst.ReleaseSingersNotInUse(Project);
+                    DiffSingerRealCurveScheduler.CancelAll();
                 } else if (cmd is SetPlayPosTickNotification setPlayPosTickNotif) {
                     playPosTick = setPlayPosTickNotif.playPosTick;
                 } else if (cmd is SetRangeSelectionNotification setRange) {

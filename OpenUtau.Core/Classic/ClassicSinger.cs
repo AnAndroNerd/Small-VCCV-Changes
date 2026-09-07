@@ -33,6 +33,7 @@ namespace OpenUtau.Classic {
         public override Encoding TextFileEncoding => voicebank.TextFileEncoding;
         public override IList<USubbank> Subbanks => subbanks;
         public override IList<UOto> Otos => otos;
+        public object SessionLock { get; } = new object();
 
         Voicebank voicebank;
         List<string> errors = new List<string>();
@@ -164,6 +165,18 @@ namespace OpenUtau.Classic {
         public void Dispose() {
             otoWatcher?.Dispose();
             otoWatcher = null;
+        }
+
+        public override void FreeMemory() {
+            Log.Information($"Freeing memory for singer {Id}");
+            lock (SessionLock) {
+                Dispose();
+                subbanks.Clear();
+                otoSets.Clear();
+                otos.Clear();
+                otoMap.Clear();
+                errors.Clear();
+            }
         }
 
         public override bool TryGetOto(string phoneme, out UOto oto) {
