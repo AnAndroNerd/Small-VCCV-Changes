@@ -208,6 +208,7 @@ namespace OpenUtau.Core.Util {
             public string SkipUpdate = string.Empty;
             public string AdditionalSingerPath = string.Empty;
             public bool InstallToAdditionalSingersPath = true;
+            public bool IgnoreLockedExpression = false;
             public bool LoadDeepFolderSinger = true;
             public bool PreferCommaSeparator = false;
             public bool ResamplerLogging = false;

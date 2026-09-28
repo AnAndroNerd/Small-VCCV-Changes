@@ -82,6 +82,7 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial LyricsHelperOption? LyricsHelper { get; set; }
         [Reactive] public partial bool LyricsHelperBrackets { get; set; }
         [Reactive] public partial bool PenPlusDefault { get; set; }
+        [Reactive] public partial bool IgnoreLockedExpressions { get; set; }
 
         // Render
         [Reactive] public partial bool PreRender { get; set; }
@@ -182,6 +183,7 @@ namespace OpenUtau.App.ViewModels {
             MetronomeLowFrequency = Preferences.Default.MetronomeLowFrequency;
             LockStartTime = Preferences.Default.LockStartTime;
             InstallToAdditionalSingersPath = Preferences.Default.InstallToAdditionalSingersPath;
+            IgnoreLockedExpressions = Preferences.Default.IgnoreLockedExpression;
             LoadDeepFolders = Preferences.Default.LoadDeepFolderSinger;
             ToolsManager.Inst.Initialize();
             var pattern = new Regex(@"Strings\.([\w-]+)\.axaml");
@@ -305,6 +307,8 @@ namespace OpenUtau.App.ViewModels {
                 loadDeepFolders => Preferences.Default.LoadDeepFolderSinger = loadDeepFolders);
             PersistOn(this.WhenAnyValue(vm => vm.PreRender),
                 preRender => Preferences.Default.PreRender = preRender);
+            PersistOn(this.WhenAnyValue(vm => vm.IgnoreLockedExpressions),
+                value => Preferences.Default.IgnoreLockedExpression = value);
             this.WhenAnyValue(vm => vm.Language)
                 .Skip(1)
                 .OfType<CultureInfo>()

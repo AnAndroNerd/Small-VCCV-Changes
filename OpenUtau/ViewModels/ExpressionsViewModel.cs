@@ -10,6 +10,7 @@ using ReactiveUI;
 using ReactiveUI.Primitives;
 using static ReactiveUI.Primitives.SubscribeExtensions;
 using ReactiveUI.SourceGenerators;
+using OpenUtau.Core.Util;
 
 namespace OpenUtau.App.ViewModels {
     public partial class ExpressionBuilder : ReactiveObject {
@@ -27,16 +28,15 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial bool Locked { get; set; }
 
         public bool IsCustom => isCustom.Value;
-        public bool IsRemovable => isRemovable.Value;
+        public bool IsRemovable => !Locked || ExpressionsViewModel.isTrackOverride || Preferences.Default.IgnoreLockedExpression;
         public bool IsNumerical => isNumerical.Value;
         public bool IsCurve => isCurve.Value;
         public bool IsOptions => isOptions.Value;
 
-        private ObservableAsPropertyHelper<bool> isCustom;
-        private ObservableAsPropertyHelper<bool> isRemovable;
-        private ObservableAsPropertyHelper<bool> isNumerical;
-        private ObservableAsPropertyHelper<bool> isCurve;
-        private ObservableAsPropertyHelper<bool> isOptions;
+        private ObservableAsPropertyHelper<bool> isCustom = null!;
+        private ObservableAsPropertyHelper<bool> isNumerical = null!;
+        private ObservableAsPropertyHelper<bool> isCurve = null!;
+        private ObservableAsPropertyHelper<bool> isOptions = null!;
 
         public ExpressionBuilder(UExpressionDescriptor descriptor)
             : this(descriptor.name, descriptor.abbr, descriptor.min, descriptor.max, descriptor.isFlag, descriptor.flag,
@@ -62,11 +62,12 @@ namespace OpenUtau.App.ViewModels {
             OptionValues = optionValues;
 
             this.WhenAnyValue(x => x.Locked)
-                .Select(locked => !locked)
-                .ToProperty(this, x => x.IsCustom, out isCustom);
+                .Select(locked => !locked || ExpressionsViewModel.isTrackOverride ||
+                                  Preferences.Default.IgnoreLockedExpression);
             this.WhenAnyValue(x => x.Locked)
-                .Select(locked => !locked || ExpressionsViewModel.isTrackOverride)
-                .ToProperty(this, x => x.IsRemovable, out isRemovable);
+                .Select(locked => !locked || ExpressionsViewModel.isTrackOverride);
+            this.WhenAnyValue(x => x.Locked)
+                .Subscribe(_ => this.RaisePropertyChanged(nameof(IsRemovable)));
             this.WhenAnyValue(x => x.ExpressionType)
                 .Select(type => type == 0) // Numerical
                 .ToProperty(this, x => x.IsNumerical, out isNumerical);
@@ -131,6 +132,8 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial string WindowTitle { get; set; } = "Expressions";
         [Reactive] public partial bool IsTrackOverride { get; set; }
         [Reactive] public partial string CustomDefaultLabel { get; set; } = ThemeManager.GetString("exps.projectdefault");
+        public bool IsLockToggleEnabled => !Preferences.Default.IgnoreLockedExpression;
+
 
         public ReadOnlyObservableCollection<ExpressionBuilder> Expressions => expressions;
         public ExpressionBuilder? Expression {
@@ -286,7 +289,7 @@ namespace OpenUtau.App.ViewModels {
                         }
                     }
                 }
-            } else if (Expression != null) {
+            } else if (Expression != null && Expression.IsRemovable) {
                 if (IsTrackOverride) {
                     expressionsSourceTrack.Remove(Expression);
                 } else {

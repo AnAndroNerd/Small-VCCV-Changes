@@ -108,7 +108,7 @@
           </DockPanel>
           <DockPanel>
               <TextBlock Text="{DynamicResource exps.locked}" Classes="label"/>
-              <CheckBox IsChecked="{Binding Expression.Locked}"/>
+              <CheckBox IsChecked="{Binding Expression.Locked}" IsEnabled="{Binding IsLockToggleEnabled}"/>
           </DockPanel>
         </StackPanel>
 
@@ -131,7 +131,7 @@
               </ContextMenu>
             </Button.ContextMenu>
           </Button>
-          <Button Grid.Column="2" HorizontalAlignment="Stretch" Command="{Binding Remove}" IsEnabled="{Binding Expression.IsRemovable}">-</Button>
+          <Button Grid.Column="2" HorizontalAlignment="Stretch" Command="{Binding Remove}" IsEnabled="{Binding IsSelected}">-</Button>
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
