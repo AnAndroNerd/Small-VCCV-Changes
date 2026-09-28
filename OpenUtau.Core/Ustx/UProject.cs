@@ -180,6 +180,21 @@ namespace OpenUtau.Core.Ustx {
         }
 
         public void AfterLoad() {
+            // Legacy required expression migration
+            if (ustxVersion < new Version(0, 11)) {
+                foreach (var descriptor in expressions.Values) {
+                    if (Format.Ustx.Lockedbydefault.Contains(descriptor.abbr)) {
+                        descriptor.locked = true;
+                    }
+                }
+                foreach (var track in tracks) {
+                    foreach (var descriptor in track.TrackExpressions) {
+                        if (Format.Ustx.Lockedbydefault.Contains(descriptor.abbr)) {
+                            descriptor.locked = true;
+                        }
+                    }
+                }
+            }
             foreach (var track in tracks) {
                 track.AfterLoad(this);
             }

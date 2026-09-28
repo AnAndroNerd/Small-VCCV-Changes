@@ -39,16 +39,17 @@ namespace OpenUtau.Core.Format {
         public const string RPIT = "rpit";
         public const string PITO = "pito";
 
+        public static readonly string[] Lockedbydefault = { DYN, PITD, CLR, ENG, VEL, VOL, ATK, DEC };
 
         public static void AddDefaultExpressions(UProject project) {
-            project.RegisterExpression(new UExpressionDescriptor("dynamics (curve)", DYN, -240, 120, 0) { type = UExpressionType.Curve });
-            project.RegisterExpression(new UExpressionDescriptor("pitch deviation (curve)", PITD, -1200, 1200, 0) { type = UExpressionType.Curve });
-            project.RegisterExpression(new UExpressionDescriptor("voice color", CLR, false, new string[0]));
-            project.RegisterExpression(new UExpressionDescriptor("resampler engine", ENG, false, new string[] { "", WorldlineResampler.name }));
-            project.RegisterExpression(new UExpressionDescriptor("velocity", VEL, 0, 200, 100));
-            project.RegisterExpression(new UExpressionDescriptor("volume", VOL, 0, 200, 100));
-            project.RegisterExpression(new UExpressionDescriptor("attack", ATK, 0, 200, 100));
-            project.RegisterExpression(new UExpressionDescriptor("decay", DEC, 0, 100, 0));
+            project.RegisterExpression(new UExpressionDescriptor("dynamics (curve)", DYN, -240, 120, 0, locked: true) { type = UExpressionType.Curve });
+            project.RegisterExpression(new UExpressionDescriptor("pitch deviation (curve)", PITD, -1200, 1200, 0, locked: true) { type = UExpressionType.Curve });
+            project.RegisterExpression(new UExpressionDescriptor("voice color", CLR, false, new string[0], locked: true));
+            project.RegisterExpression(new UExpressionDescriptor("resampler engine", ENG, false, new string[] { "", WorldlineResampler.name }, locked: true));
+            project.RegisterExpression(new UExpressionDescriptor("velocity", VEL, 0, 200, 100, locked: true));
+            project.RegisterExpression(new UExpressionDescriptor("volume", VOL, 0, 200, 100, locked: true));
+            project.RegisterExpression(new UExpressionDescriptor("attack", ATK, 0, 200, 100, locked: true));
+            project.RegisterExpression(new UExpressionDescriptor("decay", DEC, 0, 100, 0, locked: true));
             project.RegisterExpression(new UExpressionDescriptor("gender", GEN, -100, 100, 0, "g"));
             project.RegisterExpression(new UExpressionDescriptor("gender (curve)", GENC, -100, 100, 0) { type = UExpressionType.Curve });
             project.RegisterExpression(new UExpressionDescriptor("breath", BRE, 0, 100, 0, "B"));
