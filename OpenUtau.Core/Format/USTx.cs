@@ -10,7 +10,7 @@ using Serilog;
 
 namespace OpenUtau.Core.Format {
     public class Ustx {
-        public static readonly Version kUstxVersion = new Version(0, 10);
+        public static readonly Version kUstxVersion = new Version(0, 11);
 
         public const string DYN = "dyn";
         public const string PITD = "pitd";
@@ -39,7 +39,6 @@ namespace OpenUtau.Core.Format {
         public const string RPIT = "rpit";
         public const string PITO = "pito";
 
-        public static readonly string[] required = { DYN, PITD, CLR, ENG, VEL, VOL, ATK, DEC };
 
         public static void AddDefaultExpressions(UProject project) {
             project.RegisterExpression(new UExpressionDescriptor("dynamics (curve)", DYN, -240, 120, 0) { type = UExpressionType.Curve });

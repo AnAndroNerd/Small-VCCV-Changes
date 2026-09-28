@@ -27,6 +27,7 @@ namespace OpenUtau.Core.Ustx {
         public string flag;
         public string[] options;
         public bool skipOutputIfDefault = false;
+        public bool locked = false;
         [YamlIgnore]
         public float CustomDefaultValue {
             get => _customDefaultValue ?? defaultValue;
@@ -47,7 +48,7 @@ namespace OpenUtau.Core.Ustx {
         /// <summary>
         /// For Numerical/Curve
         /// </summary>
-        public UExpressionDescriptor(string name, string abbr, float min, float max, float defaultValue, string flag = "", float? customDefaultValue = null, bool skipOutputIfDefault = false) {
+        public UExpressionDescriptor(string name, string abbr, float min, float max, float defaultValue, string flag = "", float? customDefaultValue = null, bool skipOutputIfDefault = false, bool locked = false) {
             this.name = name;
             this.abbr = abbr.ToLower();
             this.min = min;
@@ -57,12 +58,13 @@ namespace OpenUtau.Core.Ustx {
             this.flag = flag;
             this.CustomDefaultValue = Math.Clamp(customDefaultValue ?? defaultValue, min, max);
             this.skipOutputIfDefault = skipOutputIfDefault;
+            this.locked = locked;
         }
 
         /// <summary>
         /// For Options
         /// </summary>
-        public UExpressionDescriptor(string name, string abbr, bool isFlag, string[] options) {
+        public UExpressionDescriptor(string name, string abbr, bool isFlag, string[] options, bool locked = false) {
             this.name = name;
             this.abbr = abbr.ToLower();
             type = UExpressionType.Options;
@@ -70,6 +72,7 @@ namespace OpenUtau.Core.Ustx {
             max = options.Length - 1;
             this.isFlag = isFlag;
             this.options = options;
+            this.locked = locked;
         }
 
         public UExpression Create() {
@@ -91,6 +94,7 @@ namespace OpenUtau.Core.Ustx {
                 flag = flag,
                 options = (string[])options?.Clone(),
                 skipOutputIfDefault = skipOutputIfDefault,
+                locked = locked
             };
         }
 
@@ -98,16 +102,17 @@ namespace OpenUtau.Core.Ustx {
 
         public bool Equals(UExpressionDescriptor other) {
             return this.name == other.name &&
-                this.abbr == other.abbr &&
-                this.type == other.type &&
-                this.min == other.min &&
-                this.max == other.max &&
-                this.defaultValue == other.defaultValue &&
-                this.CustomDefaultValue == other.CustomDefaultValue &&
-                this.isFlag == other.isFlag &&
-                this.flag == other.flag &&
-                ((this.options == null && other.options == null) || this.options.SequenceEqual(other.options) &&
-                this.skipOutputIfDefault == other.skipOutputIfDefault);
+                   this.abbr == other.abbr &&
+                   this.type == other.type &&
+                   this.min == other.min &&
+                   this.max == other.max &&
+                   this.defaultValue == other.defaultValue &&
+                   this.CustomDefaultValue == other.CustomDefaultValue &&
+                   this.isFlag == other.isFlag &&
+                   this.flag == other.flag &&
+                   ((this.options == null && other.options == null) || this.options.SequenceEqual(other.options) &&
+                       this.skipOutputIfDefault == other.skipOutputIfDefault) &&
+                   this.locked == other.locked;
         }
     }
 

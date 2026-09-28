@@ -292,6 +292,7 @@ Do you want to continue by splitting at the nearest position after current playh
   <system:String x:Key="expressiongraph.unused">No track uses this graph.</system:String>
   <system:String x:Key="expressiongraph.usedby">Used by</system:String>
   <system:String x:Key="exps.abbr">Abbreviation</system:String>
+  <system:String x:Key="exps.locked">Lock</system:String>
   <system:String x:Key="exps.caption">Expressions</system:String>
   <system:String x:Key="exps.defaultvalue">Default</system:String>
   <system:String x:Key="exps.flag">Resampler Flag</system:String>

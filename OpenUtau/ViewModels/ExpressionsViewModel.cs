@@ -24,6 +24,7 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial string Flag { get; set; }
         [Reactive] public partial string OptionValues { get; set; }
         [Reactive] public partial bool SkipOutputIfDefault { get; set; } = false;
+        [Reactive] public partial bool Locked { get; set; }
 
         public bool IsCustom => isCustom.Value;
         public bool IsRemovable => isRemovable.Value;
@@ -44,6 +45,7 @@ namespace OpenUtau.App.ViewModels {
             DefaultValue = descriptor.defaultValue;
             CustomeDefaultValue = descriptor.CustomDefaultValue;
             SkipOutputIfDefault = descriptor.skipOutputIfDefault;
+            Locked = descriptor.locked;
         }
 
         public ExpressionBuilder()
@@ -59,11 +61,11 @@ namespace OpenUtau.App.ViewModels {
             Flag = flag;
             OptionValues = optionValues;
 
-            this.WhenAnyValue(x => x.Abbr)
-                .Select(abbr => !Core.Format.Ustx.required.Contains(abbr))
+            this.WhenAnyValue(x => x.Locked)
+                .Select(locked => !locked)
                 .ToProperty(this, x => x.IsCustom, out isCustom);
-            this.WhenAnyValue(x => x.Abbr)
-                .Select(abbr => !Core.Format.Ustx.required.Contains(abbr) || ExpressionsViewModel.isTrackOverride)
+            this.WhenAnyValue(x => x.Locked)
+                .Select(locked => !locked || ExpressionsViewModel.isTrackOverride)
                 .ToProperty(this, x => x.IsRemovable, out isRemovable);
             this.WhenAnyValue(x => x.ExpressionType)
                 .Select(type => type == 0) // Numerical
@@ -106,16 +108,16 @@ namespace OpenUtau.App.ViewModels {
         public UExpressionDescriptor Build() {
             switch ((UExpressionType)ExpressionType) {
                 case UExpressionType.Numerical:
-                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), Min, Max, DefaultValue, Flag, CustomeDefaultValue, SkipOutputIfDefault);
+                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), Min, Max, DefaultValue, Flag, CustomeDefaultValue, SkipOutputIfDefault, Locked);
                 case UExpressionType.Options:
-                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), IsFlag, OptionValues.Split(','));
+                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), IsFlag, OptionValues.Split(','), Locked);
                 case UExpressionType.Curve:
-                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), Min, Max, DefaultValue) {
+                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), Min, Max, DefaultValue, locked: Locked) {
                         type = UExpressionType.Curve,
                     };
                 case UExpressionType.MaskedCurve:
                     // No default: a masked curve has no value where none is set. Min and max scale its lane.
-                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), Min, Max, Min) {
+                    return new UExpressionDescriptor(Name.Trim(), Abbr.Trim().ToLower(), Min, Max, Min, locked: Locked) {
                         type = UExpressionType.MaskedCurve,
                     };
             }
