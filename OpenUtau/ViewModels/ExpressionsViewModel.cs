@@ -27,13 +27,12 @@ namespace OpenUtau.App.ViewModels {
         [Reactive] public partial bool SkipOutputIfDefault { get; set; } = false;
         [Reactive] public partial bool Locked { get; set; }
 
-        public bool IsCustom => isCustom.Value;
+        public bool IsCustom => !Locked || Preferences.Default.IgnoreLockedExpression;
         public bool IsRemovable => !Locked || ExpressionsViewModel.isTrackOverride || Preferences.Default.IgnoreLockedExpression;
         public bool IsNumerical => isNumerical.Value;
         public bool IsCurve => isCurve.Value;
         public bool IsOptions => isOptions.Value;
 
-        private ObservableAsPropertyHelper<bool> isCustom = null!;
         private ObservableAsPropertyHelper<bool> isNumerical = null!;
         private ObservableAsPropertyHelper<bool> isCurve = null!;
         private ObservableAsPropertyHelper<bool> isOptions = null!;
@@ -62,12 +61,10 @@ namespace OpenUtau.App.ViewModels {
             OptionValues = optionValues;
 
             this.WhenAnyValue(x => x.Locked)
-                .Select(locked => !locked || ExpressionsViewModel.isTrackOverride ||
-                                  Preferences.Default.IgnoreLockedExpression);
-            this.WhenAnyValue(x => x.Locked)
-                .Select(locked => !locked || ExpressionsViewModel.isTrackOverride);
-            this.WhenAnyValue(x => x.Locked)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(IsRemovable)));
+                .Subscribe(_ => {
+                    this.RaisePropertyChanged(nameof(IsCustom));
+                    this.RaisePropertyChanged(nameof(IsRemovable));
+                });
             this.WhenAnyValue(x => x.ExpressionType)
                 .Select(type => type == 0) // Numerical
                 .ToProperty(this, x => x.IsNumerical, out isNumerical);
