@@ -39,6 +39,7 @@ namespace OpenUtau.Plugin.Builtin {
                 .ToDictionary(parts => parts[0], parts => parts[1]);
         }
         private bool useConvel = true;
+        private uint baseBpm = 120;
 
         private readonly Dictionary<string, string> vcExceptions =
             new Dictionary<string, string>() {
@@ -185,6 +186,9 @@ namespace OpenUtau.Plugin.Builtin {
                 if (data?.useconvel != null) {
                     useConvel = data.useconvel.Value;
                 }
+                if (data?.basebpm != null) {
+                    baseBpm = data.basebpm.Value;
+                }
             } catch (Exception ex) {
                 Log.Error($"Failed to load vccv specific features from {YamlFileName}: {ex.Message}");
             }
@@ -193,6 +197,7 @@ namespace OpenUtau.Plugin.Builtin {
         private class VCCVYAMLData {
             public Dictionary<string, string> vcvowels { get; set; } = new Dictionary<string, string>();
             public bool? useconvel { get; set; }
+            public uint? basebpm { get; set; }
         }
         
         // this lets us get the unotes and utrack for convel
@@ -277,7 +282,7 @@ namespace OpenUtau.Plugin.Builtin {
             if (note == null) return 100f;
             int absTick = partPos + note.position;
             float bpm = timeAxis != null ? (float)timeAxis.GetBpmAtTick(absTick) : 120f;
-            float baseConvel = 100 * (bpm / 120f);
+            float baseConvel = 100 * (bpm / baseBpm);
             float finalConvel;
             var trackVel = utrack?.TrackExpressions?.FirstOrDefault(e => e.abbr == "vel");
             float velMin = trackVel?.min ?? 0f;
