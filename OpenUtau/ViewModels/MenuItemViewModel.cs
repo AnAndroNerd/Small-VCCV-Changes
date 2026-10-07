@@ -1,7 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Input;
+using Avalonia.Controls.Shapes;
 using Avalonia.Data;
+using Avalonia.Data.Core;
 using Avalonia.Input;
+using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Markup.Xaml.MarkupExtensions.CompiledBindings;
+using Avalonia.Threading;
 using OpenUtau.Core.Ustx;
 
 namespace OpenUtau.App.ViewModels {
@@ -14,6 +19,18 @@ namespace OpenUtau.App.ViewModels {
         public bool IsChecked { get; set; } = false;
         public KeyGesture? InputGesture { get; set; }
         public bool IsEnabled { get; set; } = true;
+        public object? Icon { get; set; }
+
+        public MenuItemViewModel() { }
+        public MenuItemViewModel(bool isChecked) {
+            IsChecked = isChecked;
+            Dispatcher.UIThread.Post(() => {
+                Icon = new Path {
+                    IsVisible = isChecked,
+                    Classes = { "checkmenu" },
+                };
+            });
+        }
     }
 
     public class SingerMenuItemViewModel : MenuItemViewModel {
@@ -31,13 +48,21 @@ namespace OpenUtau.App.ViewModels {
             }
         }
         private object? _icon;
-        public object? Icon {
+        public new object? Icon {
             get {
                 if(_icon == null) {
                     if (CommandParameter is USinger) {
+                        var path = new CompiledBindingPathBuilder()
+                            .Property(
+                                new ClrPropertyInfo(
+                                    nameof(IsFavourite), 
+                                    obj => ((SingerMenuItemViewModel)obj).IsFavourite,
+                                    (obj, val) => ((SingerMenuItemViewModel)obj).IsFavourite = (bool)val!, 
+                                    typeof(bool)),
+                                    (weakRef, iPropInfo) => PropertyInfoAccessorFactory.CreateInpcPropertyAccessor(weakRef, iPropInfo))
+                            .Build();
                         _icon = new FavouriteToggleButton() {
-                            [!FavouriteToggleButton.IsCheckedProperty] = new Binding("IsFavourite")
-                            
+                            [!FavouriteToggleButton.IsCheckedProperty] = new CompiledBindingExtension(path)
                         };
                     }
                 }

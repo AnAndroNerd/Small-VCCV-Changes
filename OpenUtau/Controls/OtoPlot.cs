@@ -75,8 +75,8 @@ namespace OpenUtau.App.Controls {
         private byte[]? wavBitmapData;
         private WriteableBitmap? melBitmap;
 
-        private IBrush blueFill = new SolidColorBrush(Colors.LightBlue, 0.5);
-        private IBrush pinkFill = new SolidColorBrush(Colors.Pink, 0.5);
+        private IBrush blueFill = new SolidColorBrush(Avalonia.Media.Colors.LightBlue, 0.5);
+        private IBrush pinkFill = new SolidColorBrush(Avalonia.Media.Colors.Pink, 0.5);
         private IPen blueLine = new Pen(SolidColorBrush.Parse("#4EA6EA"), 2);
         private IPen limeLine = new Pen(Brushes.Lime);
         private IPen redLine = new Pen(Brushes.Red);
@@ -415,10 +415,21 @@ namespace OpenUtau.App.Controls {
             preText.Draw(context, new Point(preutterX, height));
         }
 
+        // The plot unloads when the Singers dialog closes or shows another tab, and may load again.
+        protected override void OnLoaded(RoutedEventArgs e) {
+            base.OnLoaded(e);
+            if (melBitmap == null && WaveFile != null) {
+                UpdateMel(WaveFile);
+                InvalidateVisual();
+            }
+        }
+
         protected override void OnUnloaded(RoutedEventArgs e) {
             base.OnUnloaded(e);
             wavBitmap?.Dispose();
+            wavBitmap = null;
             melBitmap?.Dispose();
+            melBitmap = null;
         }
     }
 }

@@ -61,6 +61,7 @@ namespace OpenUtau.Classic {
                 Tuple.Create(noExt + ".rudb", tempNoExt + ".rudb"),
                 Tuple.Create(noExt + ".sc.npz", tempNoExt + ".sc.npz"),
                 Tuple.Create(noExt + ".sc", tempNoExt + ".sc"),
+                Tuple.Create(noExt + "_hnsep", tempNoExt + "_hnsep"),
                 Tuple.Create(noExt + ".hifi.npz", tempNoExt + ".hifi.npz"),
                 //Tuple.Create(noExt + ".lessaudio", tempNoExt + ".lessaudio"),
             };
@@ -123,6 +124,9 @@ namespace OpenUtau.Classic {
             string noExt = source.Substring(0, source.Length - ext.Length);
             string frqExt = ext.Replace('.', '_') + ".frq";
             return noExt + frqExt;
+        }
+        public static string GetMrqFile(string source) {
+            return Path.Combine(Path.GetDirectoryName(source), "desc.mrq");
         }
     }
 }
