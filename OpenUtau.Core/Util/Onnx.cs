@@ -85,7 +85,7 @@ namespace OpenUtau.Core {
                         WebGpuMinMajor, WebGpuMinMinor, version);
                     return false;
                 }
-                string? libraryPath = findWebGpuLibrary();
+                string? libraryPath = findNativeLibrary(WebGpuLibraryName, "onnxruntime_providers_webgpu.dylib");
                 if (libraryPath == null) {
                     Log.Information("WebGPU runner is not available: {Library} was not found next to the executable.",
                         WebGpuLibraryName);
@@ -117,18 +117,15 @@ namespace OpenUtau.Core {
             }
         }
 
-        /// <summary>Locates the plugin library in the places a framework dependent
+        /// <summary>Locates a plugin library in the places a framework dependent
         /// build, an app bundle or a flat output directory put it.</summary>
-        private static string? findWebGpuLibrary() {
+        private static string? findNativeLibrary(params string[] names) {
             string baseDir = AppContext.BaseDirectory;
-            // The package ships the library with a "lib" prefix on macOS; keep the
-            // unprefixed name as a fallback so a packaging change does not silently
-            // disable the runner.
-            string[] names = { WebGpuLibraryName, "onnxruntime_providers_webgpu.dylib" };
             var candidates = names
                 .SelectMany(name => new[] {
                     Path.Combine(baseDir, name),
                     Path.Combine(baseDir, "runtimes", "osx-arm64", "native", name),
+                    Path.Combine(baseDir, "runtimes", "osx", "native", name),
                     Path.Combine(baseDir, "..", "Resources", name),
                 });
             foreach (var candidate in candidates) {
@@ -150,6 +147,65 @@ namespace OpenUtau.Core {
             return webGpuReady;
         }
 
+        private const string MlxEpName = "MLXExecutionProvider";
+        private const string MlxRegistrationName = MlxEpName;
+        private const string MlxLibraryName = "libonnxruntime_mlx_ep.dylib";
+        private const int MlxMinMajor = 1;
+        private const int MlxMinMinor = 31;
+
+        private static readonly object mlxLock = new object();
+        private static bool mlxInitialized;
+        private static OrtEpDevice? mlxDevice;
+        
+        private static void EnsureMlxInitialized() {
+            lock (mlxLock) {
+                if (mlxInitialized) return;
+                mlxInitialized = true;
+                mlxDevice = RegisterMlx();
+            }
+        }
+
+        private static OrtEpDevice? RegisterMlx() {
+            Log.Information("MLX runner: registration starting (macOS: {IsMac}).", OS.IsMacOS());
+            if (!OS.IsMacOS()) return null;
+            try {
+                var env = OrtEnv.Instance();
+                string version = env.GetVersionString();
+                if (!OnnxRuntimeVersion.IsAtLeast(version, MlxMinMajor, MlxMinMinor)) {
+                    Log.Warning("MLX runner needs ONNX Runtime {Major}.{Minor}+, but {Version} is loaded.",
+                        MlxMinMajor, MlxMinMinor, version);
+                    return null;
+                }
+                string? path = findNativeLibrary(MlxLibraryName);
+                if (path == null) {
+                    Log.Information("MLX runner is not available: {Library} was not found.", MlxLibraryName);
+                    return null;
+                }
+                env.RegisterExecutionProviderLibrary(MlxRegistrationName, path);
+                var device = env.GetEpDevices()
+                    .FirstOrDefault(d => string.Equals(d.EpName, MlxEpName, StringComparison.OrdinalIgnoreCase));
+                if (device == null) {
+                    Log.Warning("MLX runner loaded {Library} but it reported no device. EPs: {Eps}",
+                        path, string.Join(", ", env.GetEpDevices().Select(d => d.EpName)));
+                } else {
+                    Log.Information("MLX runner is ready: {Description}", describe(device));
+                }
+                return device;
+            } catch (Exception e) {
+                Log.Error(e, "Failed to register the MLX execution provider.");
+                return null;
+            }
+        }
+        
+        public static bool IsMlxAvailable() {
+            EnsureMlxInitialized();
+            return mlxDevice != null;
+        }
+
+        public static bool IsMlxRunner() {
+            return getRunner() == "MLX";
+        }
+        
         public static List<string> getRunnerOptions() {
             if (OS.IsWindows()) {
                 return new List<string> {
@@ -160,6 +216,9 @@ namespace OpenUtau.Core {
                 var options = new List<string> { "CPU" };
                 if (IsWebGpuAvailable()) {
                     options.Add("WebGPU");
+                }
+                if (IsMlxAvailable()) {
+                    options.Add("MLX");
                 }
                 return options;
             } else if (cudaAvailable) {
@@ -331,6 +390,14 @@ namespace OpenUtau.Core {
                     return cpu();
                 }
             }
+            if (IsMlxRunner()) {
+                try {
+                    return withProvider();
+                } catch (Exception e) {
+                    Log.Warning(e, "Failed to create an MLX inference session, falling back to CPU.");
+                    return cpu();
+                }
+            }
             return withProvider();
         }
 
@@ -365,6 +432,13 @@ namespace OpenUtau.Core {
                         new List<OrtEpDevice> { getWebGpuDevice() },
                         new Dictionary<string, string> { }
                      );
+                    break;
+                case "MLX":
+                    EnsureMlxInitialized();
+                    options.AppendExecutionProvider(
+                        OrtEnv.Instance(),
+                        new List<OrtEpDevice> { mlxDevice! },
+                        new Dictionary<string, string> { });
                     break;
                 case "CUDA":
                     options.AppendExecutionProvider_CUDA(Preferences.Default.OnnxGpu);
