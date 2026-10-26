@@ -347,6 +347,7 @@ namespace OpenUtau.App.ViewModels {
                     }
                 });
             this.WhenAnyValue(vm => vm.UiFontPath)
+                .Skip(1)
                 .Subscribe(path => {
                     Preferences.Default.UiFontPath = UiFontManager.IsSupportedFontPath(path) ? path : string.Empty;
                     Preferences.Save();
@@ -354,12 +355,14 @@ namespace OpenUtau.App.ViewModels {
                     RefreshUiFontFamilies();
                 });
             this.WhenAnyValue(vm => vm.UiFontFamily)
+                .Skip(1)
                 .Subscribe(family => {
                     Preferences.Default.UiFontFamily = family?.Trim() ?? string.Empty;
                     Preferences.Save();
                     UiFontManager.Apply();
                 });
             this.WhenAnyValue(vm => vm.UseUiFontForNotes)
+                .Skip(1)
                 .Subscribe(useUiFont => {
                     Preferences.Default.UseUiFontForNotes = useUiFont;
                     Preferences.Save();

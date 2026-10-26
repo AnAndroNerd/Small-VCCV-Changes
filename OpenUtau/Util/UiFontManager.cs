@@ -15,7 +15,6 @@ namespace OpenUtau.App;
 /// </summary>
 public static class UiFontManager {
     private static readonly Uri CollectionKey = new("fonts:OpenUtau.CustomUiFont", UriKind.Absolute);
-    private static FontFamily? fallbackFontFamily;
     private static bool customFontApplied;
     private static string? loadedFontPath;
     private static string? loadedFamilyName;
@@ -65,10 +64,6 @@ public static class UiFontManager {
             resources.Remove("ui.fontfamily");
             customFontApplied = false;
             Controls.TextLayoutCache.Clear();
-        }
-        if (resources.TryGetResource("ui.fontfamily", Avalonia.Styling.ThemeVariant.Default, out var fallback)
-            && fallback is FontFamily family) {
-            fallbackFontFamily = family;
         }
 
         var path = Preferences.Default.UiFontPath;
